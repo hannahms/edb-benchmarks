@@ -51,3 +51,23 @@
         mode: '0755'
         owner: "{{ hammerdb_user }}"
         group: "{{ hammerdb_user }}"
+
+    - name: Install patch
+      ansible.builtin.package:
+        name: patch
+
+    - name: Copy patches to host
+      ansible.builtin.copy:
+        src: 0001-Match-postgresql-stored-procedures-to-oracle.patch
+        dest: "/home/{{ hammerdb_user }}/0001-Match-postgresql-stored-procedures-to-oracle.patch"
+        owner: "{{ hammerdb_user }}"
+        group: "{{ hammerdb_user }}"
+        mode: '0644'
+      become: true
+
+    - name: Apply HammerDB patches
+      ansible.posix.patch:
+        src: 0001-Match-postgresql-stored-procedures-to-oracle.patch
+        basedir: "/home/{{ hammerdb_user }}/HammerDB-{{ hammerdb_version }}"
+        strip: 1
+      become_user: "hammerdb"
