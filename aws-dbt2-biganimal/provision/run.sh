@@ -48,7 +48,7 @@ echo "$BAID" > "${BIGANIMALIDFILE}"
 # amount of time.
 RC=0
 while [ $RC -ne 1 ]; do
-	RC=$(biganimal show-clusters --id "$BAID" | grep "\<$BAID\>" | grep -c "Cluster in healthy state" || exit 0)
+	RC=$(biganimal show-clusters --id "$BAID" | grep "\<$BAID\>" | grep -c "Healthy" || exit 0)
 	biganimal show-clusters --id "$BAID"
 	sleep 2
 done
