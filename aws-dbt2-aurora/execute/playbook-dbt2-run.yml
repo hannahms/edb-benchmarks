@@ -45,6 +45,12 @@
         - /tmp/dbt2-data
         - /tmp/dbt2-data.tar.gz
 
+    - name: Display dbt2_connections and ansible_processor_nproc
+      ansible.builtin.debug:
+        msg:
+        - "dbt2_connections: {{ dbt2_connections }}"
+        - "ansible_processor_nproc: {{ ansible_processor_nproc }}"
+
     - name: Calculate drivers per processor
       ansible.builtin.set_fact:
         fpp: "{{ ((dbt2_connections | int) / ansible_processor_nproc) | int  }}"
@@ -78,8 +84,9 @@
       become: true
       become_user: "{{ pg_owner }}"
       register: run_workload
-      async: 180000
-      poll: 60
+      # 04/21/2023 - Commented because was causing the benchmark to fail
+      #async: 180000
+      #poll: 60
       changed_when: false
       register: result
 
@@ -93,8 +100,9 @@
           dbt2-generate-report -i /tmp/dbt2-data
       become: true
       become_user: "{{ pg_owner }}"
-      async: 180000
-      poll: 60
+      # 04/21/2023 - Commented because was causing the benchmark to fail      
+      #async: 180000
+      #poll: 60
       changed_when: false
       register: result
 

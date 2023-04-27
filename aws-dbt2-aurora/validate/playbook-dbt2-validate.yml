@@ -1,0 +1,16 @@
+---
+- hosts: dbt2_driver
+  name: Validate DBT2 drivers and values
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:       
+    - name: Display drivers and values
+      ansible.builtin.debug:
+        msg: "dbt2_connections: {{ dbt2_connections }}  ansible_processor_nproc: {{ ansible_processor_nproc }}"
+        
+    - name: Calculate drivers per processor
+      ansible.builtin.set_fact:
+        fpp: "{{ ((dbt2_connections | int) / ansible_processor_nproc) | int  }}"        

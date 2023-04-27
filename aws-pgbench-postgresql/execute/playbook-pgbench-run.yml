@@ -57,18 +57,10 @@
          /usr/local/pgsql-{{ pg_version }}/bin/createdb pgbench
       become_user: "{{ pg_owner }}"
 
-    - name: Drop the public schema
-      ansible.builtin.command:
-        cmd: >
-         /usr/local/pgsql-{{ pg_version }}/bin/psql -d pgbench -c "DROP SCHEMA public"
-      become_user: "{{ pg_owner }}"
-      when:
-      - "(pg_version | split('.'))[0] | int > 10"
-
     - name: Restore pgbench database
       ansible.builtin.command:
         cmd: >
-          /usr/local/pgsql-{{ pg_version }}/bin/pg_restore -j 4 {{ pg_data }}/backup -d pgbench
+          /usr/local/pgsql-{{ pg_version }}/bin/pg_restore --if-exists --clean -j 4 {{ pg_data }}/backup -d pgbench
       become_user: "{{ pg_owner }}"
       async: 180000
       poll: 60
@@ -77,21 +69,21 @@
       ansible.builtin.command:
         cmd: >
           /usr/local/pgsql-{{ pg_version }}/bin/vacuumdb -d pgbench -F -j 4 -z
-      become_user: "{{ pg_owner }}"
-      async: 180000
+      become_user: "{{ pg_owner }}"     
+      async: 120000
       poll: 60
 
     # Run the benchmark script
     - name: Execute the benchmark
       ansible.builtin.command:
         cmd: >
-          /tmp/exec-pgbench-rampup.sh {{ pgbench_mode }}
+          /tmp/exec-pgbench-rampup.sh {{ pgbench_mode }} {{ client_end_duration }} {{ benchmark_duration }}
       become_user: "{{ pg_owner }}"
       environment:
         PG_VERSION: "{{ pg_version }}"
         PG_MAX_VERSION: "{{ pg_max_version }}"
-      async: 180000
-      poll: 60
+        CLIENT_END_DURATION: "{{ client_end_duration }}"
+        BENCHMARK_DURATION: "{{ benchmark_duration }}"
 
     - name: Killing Postgres
       ansible.builtin.shell: kill -9 $(pidof postgres)

@@ -23,6 +23,8 @@ do
 		-e "pg_version=${version}" \
 		-e "pg_max_version=${max_version}" \
 		-e "pgbench_mode=${PGBENCH_MODE}" \
+		-e "client_end_duration=${CLIENT_END_DURATION}" \
+		-e "benchmark_duration=${BENCHMARK_DURATION}" \
 		${SCRIPT_DIR}/playbook-pgbench-run.yml
 done
 
