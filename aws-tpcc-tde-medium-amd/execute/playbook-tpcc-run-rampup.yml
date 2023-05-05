@@ -54,8 +54,6 @@
       ansible.builtin.command:
         cmd: "./hammerdbcli tcl auto {{ hammerdb_data_path }}/loader.tcl"
         chdir: "{{ hammerdb_install_path }}"
-      async: 180000
-      poll: 60
       changed_when: false
       when: "'hammerdb' in group_names"
 
@@ -63,8 +61,6 @@
       ansible.builtin.command: >
         /usr/edb/as15/bin/psql -d postgres -c "CHECKPOINT"
       become_user: "{{ pg_owner }}"
-      async: 180000
-      poll: 60
       when: "'primary' in group_names"
 
     - name: Execute the ramping up workload
@@ -76,8 +72,6 @@
         PG_HOST: "{{ hostvars['postgres1'].private_ip }}"
         HAMMERDB_BIN_PATH: "{{ hammerdb_data_path }}"
         TPCC_WAREHOUSE: "{{ tpcc_warehouse }}"
-      async: 180000
-      poll: 60
       when: "'hammerdb' in group_names"
 
     - name: Fetch data files
