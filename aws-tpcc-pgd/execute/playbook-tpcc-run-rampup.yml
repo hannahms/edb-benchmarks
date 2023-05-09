@@ -30,8 +30,9 @@
         TPCC_MAX_VUSERS: "{{ tpcc_max_vusers }}"
         TPCC_STEP_VUSERS: "{{ tpcc_step_vusers }}"
         PG_DBNAME: "{{ bdr_dbname }}"
-      async: 180000
-      poll: 60
+      # Commented because it was breaking the benchmark - 05/03/2023
+      #async: 180000
+      #poll: 60
       when: "'hammerdb' in group_names"
 
     - name: Fetch data files

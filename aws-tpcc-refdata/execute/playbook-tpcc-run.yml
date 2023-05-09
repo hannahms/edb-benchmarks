@@ -87,8 +87,9 @@
         ./hammerdbcli tcl auto {{ hammerdb_data_path }}/{{ _hammerdb_script }} > {{ hammerdb_data_path }}/{{ _hdb_output_filename }}
       args:
         chdir: "{{ hammerdb_install_path }}"
-      async: 180000
-      poll: 60
+      # Commented out because was causing benchmark to fail - 05/08/2023
+      #async: 180000
+      #poll: 60
       when: "'hammerdb' in group_names"
 
     - name: Fetch data files from Postgres server

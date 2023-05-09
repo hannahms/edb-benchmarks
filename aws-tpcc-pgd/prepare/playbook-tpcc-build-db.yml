@@ -96,8 +96,9 @@
       ansible.builtin.command:
         cmd: "./hammerdbcli tcl auto {{ hammerdb_data_path }}/loader.tcl"
         chdir: "{{ hammerdb_install_path }}"
-      async: 180000
-      poll: 60
+      # Commented because causes benchmark to fail - 05/03/2023
+      #async: 180000
+      #poll: 60
       changed_when: false
       when: "'hammerdb' in group_names"
 
@@ -186,8 +187,9 @@
                 --local-dsn 'host=bdr2 port=5444 dbname={{ bdr_dbname }}'
       when: inventory_hostname == 'bdr2'
       become_user: "{{ pg_user }}"
-      async: 180000
-      poll: 60
+      # Commented because causes benchmark to fail - 05/03/2023
+      #async: 180000
+      #poll: 60
 
     - name: Stop Postgres on bdr2
       ansible.builtin.shell: |

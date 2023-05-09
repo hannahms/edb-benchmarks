@@ -67,8 +67,9 @@
       ansible.builtin.command:
         cmd: "./hammerdbcli tcl auto {{ hammerdb_data_path }}/loader.tcl"
         chdir: "{{ hammerdb_install_path }}"
-      async: 180000
-      poll: 60
+      # Commented out because was causing benchmark to fail - 05/08/2023
+      #async: 180000
+      #poll: 60
       changed_when: false
       when: "'hammerdb' in group_names"
 
@@ -76,8 +77,9 @@
       ansible.builtin.command:
         cmd: "./hammerdbcli tcl auto {{ hammerdb_data_path }}/loader.refdata.tcl"
         chdir: "{{ hammerdb_install_path }}"
-      async: 180000
-      poll: 60
+      # Commented out because was causing benchmark to fail - 05/08/2023
+      #async: 180000
+      #poll: 60
       changed_when: false
       when: "'hammerdb' in group_names"
 
@@ -91,8 +93,9 @@
         login_unix_socket: "{{ pg_unix_socket_directories[0] }}"
       become_user: "{{ pg_owner }}"
       when: "'primary' in group_names"
-      async: 180000
-      poll: 60
+      # Commented out because was causing benchmark to fail - 05/08/2023
+      #async: 180000
+      #poll: 60
       loop: "{{ foreignkey_ddls }}"
 
     - name: Create foreign keys on the refdata database
@@ -105,8 +108,9 @@
         login_unix_socket: "{{ pg_unix_socket_directories[0] }}"
       become_user: "{{ pg_owner }}"
       when: "'primary' in group_names"
-      async: 180000
-      poll: 60
+      # Commented out because was causing benchmark to fail - 05/08/2023
+      #async: 180000
+      #poll: 60
       loop: "{{ foreignkey_ddls }}"
 
     - name: Issuing CHECKPOINT
@@ -120,5 +124,6 @@
         login_unix_socket: "{{ pg_unix_socket_directories[0] }}"
       become_user: "{{ pg_owner }}"
       when: "'primary' in group_names"
-      async: 180000
-      poll: 60
+      # Commented out because was causing benchmark to fail - 05/08/2023
+      #async: 180000
+      #poll: 60
