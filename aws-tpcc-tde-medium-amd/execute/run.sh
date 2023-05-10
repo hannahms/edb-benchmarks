@@ -58,4 +58,8 @@ ansible-playbook \
 	${SCRIPT_DIR}/playbook-tpcc-run.yml
 
 # Generate charts
-python3 ${SCRIPT_DIR}/post-processing.py
+# FIXME: Dirty hack in the interest of time.  Let the post-processing.py script
+# process what it can and fix the broken parts later.  This also let's us not
+# worry about whether all the files exists for the push_results steps, meaning
+# we don't have to hack that for the time being.
+python3 "${SCRIPT_DIR}/post-processing.py" || echo "ignoring errors"
