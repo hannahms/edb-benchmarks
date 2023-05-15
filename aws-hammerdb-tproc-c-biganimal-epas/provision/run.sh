@@ -29,6 +29,8 @@ volumeProperties: io2
 volumePropertySize: "300 Gi"
 volumePropertyIOPS: 15000
 networking: public
+pgConfigMap:
+  default_with_rowids: true
 EOF
 
 # Note that biganimal cli outputs create-cluster messages to stderr.
