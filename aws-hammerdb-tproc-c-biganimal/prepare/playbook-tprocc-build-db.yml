@@ -16,8 +16,6 @@
       environment:
         ORACLE_HOME: "/usr/lib/oracle/21/client64"
       become_user: "hammerdb"
-      async: 180000
-      poll: 60
       register: result
 
     - name: Database build output
