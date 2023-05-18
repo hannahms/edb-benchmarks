@@ -26,7 +26,7 @@ region: us-east-1
 instanceType: aws:r5.4xlarge
 volumeType: io2
 volumeProperties: io2
-volumePropertySize: "300 Gi"
+volumePropertySize: "600 Gi"
 volumePropertyIOPS: 15000
 networking: public
 EOF
