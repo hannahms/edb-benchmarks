@@ -1,0 +1,23 @@
+#!/bin/tclsh
+global complete
+proc wait_to_complete {} {
+    global complete
+    set complete [vucomplete]
+    if { !$complete } { after 5000 wait_to_complete } else { exit }
+}
+dbset db pg
+diset connection pg_host "{{ infra.servers.machines.postgres1.private_ip }}"
+diset connection pg_port "{{ pg_port }}"
+diset connection instance {{ pg_database }}
+diset tpcc pg_defaultdbase {{ pg_database }}
+diset tpcc pg_count_ware {{ tprocc_warehouse }}
+diset tpcc pg_num_vu {{ tprocc_vusers }}
+diset tpcc pg_raiseerror true
+diset tpcc pg_superuser "{{ pg_owner }}"
+diset tpcc pg_superuserpass "{{ pg_password }}"
+diset tpcc pg_user "{{ pg_owner }}"
+diset tpcc pg_pass "{{ pg_password }}"
+diset tpcc pg_oracompat true
+diset tpcc pg_storedprocs true
+buildschema
+wait_to_complete

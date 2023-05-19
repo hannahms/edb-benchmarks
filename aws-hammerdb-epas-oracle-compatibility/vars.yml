@@ -1,0 +1,9 @@
+---
+pg_owner: enterprisedb
+pg_group: enterprisedb
+hammerdb_version: 4.6
+pg_type: EPAS
+pg_password: "12Password!"
+pg_version: 14
+pg_port: 5444
+pg_database: "edb"
