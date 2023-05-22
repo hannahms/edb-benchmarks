@@ -2,15 +2,20 @@
 - hosts: primary
   name: Setup EPAS 15 with and without TDE
   become: true
-  gather_facts: false
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  pre_tasks:
+    - name: Initialize the user defined variables
+      set_fact:
+        enable_edb_repo: true
+
+  roles:
+    - role: setup_repo
 
   tasks:
-    - name: Setup beta repo
-      ansible.builtin.shell: >
-        curl -1sLf \
-          'https://downloads.enterprisedb.com/{{ edb_beta_repo_token }}/enterprise_beta/setup.rpm.sh' \
-        | sudo -E bash
-
     - name: Install EPAS 15
       ansible.builtin.package:
         name: edb-as15-server
