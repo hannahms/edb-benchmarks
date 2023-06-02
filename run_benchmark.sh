@@ -166,16 +166,20 @@ source_env_files () {
     set +o allexport
 }
 
-set_file_permissions() {
+check_file_permissions() {
+    # Each directory/step should have a run.sh file
+    # Each run.sh file should have the execution bit set so it is tracked by git
     for step in "${benchmark_steps[@]}"; do
         run_script="$step/run.sh"
         if [[ ! -f "$run_script" ]]; then
-            continue
+            echo "File does not exist: $run_script"
+            echo "Each directory step should have a run.sh script"
+            exit 1
         fi
-        # Attempt to handle execute permissions
-        # as each directory/step should have a run.sh file
-        if [[ ! -x "$run_script" ]] && [[ ! $(chmod u+x "$run_script") ]]; then
-            echo "Unable to set execution for $run_script" >&2
+        if [[ ! -x "$run_script" ]]; then
+            echo "File execution bit missing: $run_script"
+            echo "Executable bit should be set so it is tracked with git"
+            echo "Change permissions example: chmod u+x,go-x $run_script"
             exit 1
         fi
     done
@@ -188,7 +192,8 @@ run_steps() {
         step_name=$( basename "$step" | cut -d '_' -f 2- )
         run_script="$step/run.sh"
 
-        if [[ "${exclude_steps[@]}" =~ "$step_index" ]] || [[ "${exclude_steps[@]}" =~ "$step_name" ]] || (( $start_step > $step_index )) ; then
+        # Spacing is needed to avoid matching against substrings
+        if [[ " ${exclude_steps[@]} " =~ " $step_index " ]] || [[ " ${exclude_steps[@]} " =~ " $step_name " ]] || (( $start_step > $step_index )) ; then
             echo "Skipping step: $prefix - $step_name"
             continue
         fi
@@ -213,6 +218,6 @@ run_steps() {
 
 parse_args $@
 source_env_files
-set_file_permissions
+check_file_permissions
 run_steps
 echo 'Benchmark has finished: $(basename "$0") $@'
