@@ -100,9 +100,6 @@
           dbt2-generate-report -i /tmp/dbt2-data
       become: true
       become_user: "{{ pg_owner }}"
-      # 04/21/2023 - Commented because was causing the benchmark to fail      
-      #async: 180000
-      #poll: 60
       changed_when: false
       register: result
 
@@ -110,12 +107,18 @@
       ansible.builtin.debug:
         var: result
 
-    - name: Create data archive
+    - name: Create data archive on remote
       ansible.builtin.command:
-        cmd: tar cvzf /tmp/dbt2-data.tar.gz /tmp/dbt2-data
+        cmd: tar cvzf /tmp/dbt2-data.tar.gz -C /tmp/dbt2-data/ .
 
-    - name: Fetch DBT2 data files
+    - name: Fetch DBT2 data files to localhost
       ansible.builtin.fetch:
         src: "/tmp/dbt2-data.tar.gz"
-        dest: "./dbt2_data/dbt2-data.tar.gz"
+        dest: "{{ results_directory }}/"
         flat: true
+
+    - name: Extract data contents to localhost results directory
+      ansible.builtin.shell:
+        cmd: |
+          tar xzf "{{ results_directory }}/dbt2-data.tar.gz" -C "{{ results_directory }}"
+      delegate_to: localhost

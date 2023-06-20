@@ -1,16 +1,18 @@
 #!/bin/bash -eux
 # Push DBT2 files to the S3 bucket
 
-# Extract the archive containing the report and data
-tar xzf ../04_execute/dbt2_data/dbt2-data.tar.gz -C .
-mv ./tmp/dbt2-data .
-rm -rf ./tmp
-# Copy infrastructure.yml and vars.yml
-cp ../infrastructure.yml dbt2-data/.
-cp ../vars.yml dbt2-data/.
-cd dbt2-data
+TERRAFORM_PROJECT_PATH="${RESULTS_DIRECTORY}/${TERRAFORM_PROJECT_NAME}"
+cd $RESULTS_DIRECTORY/dbt2-data
 date=$(date +'%Y-%m-%dT%H:%M:%S')
 
+# Upload infrastructure terraform project files.
+# Exclude the terraform state, any ssh keys and .terraform cache as the lock hcl file should be available.
+aws s3 cp "${TERRAFORM_PROJECT_PATH}/" "s3://${BUCKET_NAME}/${BENCHMARK_NAME}/${date}/${TERRAFORM_PROJECT_NAME}/" \
+            --exclude *tfstate* \
+            --exclude *ssh* \
+            --exclude .terraform/** \
+            --recursive
+# Upload benchmark data
 aws s3 cp readme.txt s3://${BUCKET_NAME}/${BENCHMARK_NAME}/${date}/
 aws s3 cp infrastructure.yml s3://${BUCKET_NAME}/${BENCHMARK_NAME}/${date}/
 aws s3 cp vars.yml s3://${BUCKET_NAME}/${BENCHMARK_NAME}/${date}/
