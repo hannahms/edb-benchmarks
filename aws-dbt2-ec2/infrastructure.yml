@@ -27,7 +27,8 @@ aws:
 
   machines:
     dbt2-driver:
-      type: dbt2-driver
+      tags:
+        type: dbt2-driver
       region: us-east-1
       zone: us-east-1b
       instance_type: c5.9xlarge
@@ -37,7 +38,8 @@ aws:
         iops: 5000
         encrypted: false
     postgres1:
-      type: primary
+      tags:
+        type: primary
       region: us-east-1
       az: us-east-1b
       instance_type: c5.9xlarge

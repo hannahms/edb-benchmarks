@@ -5,12 +5,9 @@ export ANSIBLE_SSH_PIPELINING=true
 export ANSIBLE_HOST_KEY_CHECKING=false
 
 # Run the benchmark
-# FIXME: use absolute path to inventory.yml and vars.yml
+# FIXME: use absolute path to vars.yml
 ansible-playbook \
-	-vv \
-	-u "${SSH_USER}" \
-	--private-key "${TERRAFORM_PROJECT_PATH}/ssh-id_rsa" \
-	-i ../inventory.yml \
+	-i "${TERRAFORM_PROJECT_PATH}/terraform/inventory.yml" \
 	-e "@../vars.yml" \
 	-e "dbt2_duration=${DBT2_DURATION}" \
 	-e "dbt2_warehouse=${DBT2_WAREHOUSE}" \
