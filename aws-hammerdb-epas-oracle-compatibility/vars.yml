@@ -1,6 +1,7 @@
 ---
 pg_owner: enterprisedb
 pg_group: enterprisedb
+hammerdb_user: "hammerdb"
 hammerdb_version: 4.6
 pg_type: EPAS
 pg_password: "12Password!"

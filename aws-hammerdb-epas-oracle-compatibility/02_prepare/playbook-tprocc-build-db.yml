@@ -1,11 +1,6 @@
 ---
-- hosts: hammerdb_driver
-  name: Populate TPROC-C database
-  become: true
-  gather_facts: true
-
-  collections:
-    - edb_devops.edb_postgres
+- hosts: primary
+  name: Start system and database statisticss collection
 
   tasks:
     - name: Build TPROC-C database
@@ -13,7 +8,8 @@
         cmd: ./hammerdbcli tcl auto /home/hammerdb/build.tcl
       args:
         chdir: "/home/hammerdb/HammerDB-{{ hammerdb_version }}"
-      become_user: "hammerdb"
+      become: true
+      become_user: "{{ hammerdb_user }}"
       register: result
 
     - name: Database build output
