@@ -31,7 +31,8 @@
     - edb_devops.edb_postgres
 
   roles:
-    - role: setup_hammerdb
+    - setup_hammerdb
+    - setup_touchstone_tools
 
   tasks:
     - name: Load servers.yml
@@ -75,6 +76,7 @@
     - init_dbserver
     - manage_dbserver
     - setup_hammerdb
+    - setup_touchstone_tools
 
   tasks:
     - name: Load servers.yml

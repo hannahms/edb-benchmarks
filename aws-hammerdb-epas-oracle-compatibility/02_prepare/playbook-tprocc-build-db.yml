@@ -3,6 +3,39 @@
   name: Start system and database statisticss collection
 
   tasks:
+    - name: Clear any previously saved touchstone data
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/sysstat-prepare"
+        - "/tmp/dbstat-prepare"
+      become: true
+
+    - name: System statistics handling
+      block:
+        - name: Start stats collection
+          ansible.builtin.shell:
+            cmd: ts sysstat -o /tmp/sysstat-prepare
+          become: true
+
+      rescue:
+        - name: Unexpected error, stopping stats collection
+          ansible.builtin.shell:
+            cmd: ts sysstat -o /tmp/sysstat-prepare -s
+        - name: Stop from failure
+          ansible.builtin.fail:
+            msg: "failing after stopping processes"
+
+    - name: Start database statistics collection
+      ansible.builtin.shell:
+        cmd: >-
+          ts pgsql-stat --dbname=tpcc --host=/var/run/edb/as{{ pg_version }}
+          --port={{ pg_port }} -o /tmp/dbstat-prepare
+      become: true
+      become_user: "{{ pg_owner }}"
+      ignore_errors: true
+
     - name: Build TPROC-C database
       ansible.builtin.shell:
         cmd: ./hammerdbcli tcl auto /home/hammerdb/build.tcl
@@ -15,3 +48,37 @@
     - name: Database build output
       ansible.builtin.debug:
         var: result
+
+    - name: Stop database statistics collection
+      ansible.builtin.shell:
+        cmd: ts pgsql-stat -o /tmp/dbstat-prepare -s
+      become: true
+      become_user: "{{ pg_owner }}"
+
+    - name: Stop system statistics collection
+      ansible.builtin.shell:
+        cmd: ts sysstat -o /tmp/sysstat-prepare -s
+      become: true
+
+    - name: Process pidstat data
+      ansible.builtin.shell:
+        cmd: ts process-pidstat -i /tmp/sysstat-prepare/pidstat.txt
+      become: true
+
+    - name: Plot sar data
+      ansible.builtin.shell:
+        cmd: ts plot-sar -i /tmp/sysstat-prepare/sar
+      become: true
+
+    - name: Plot pidstat data
+      ansible.builtin.shell:
+        cmd: >-
+          ts plot-pidstat -i /tmp/sysstat-prepare/pidstat.csv
+          -o /tmp/sysstat-prepare/pidstat
+      become: true
+
+    - name: Plot database data
+      ansible.builtin.shell:
+        cmd: ts plot-pgsql -i /tmp/dbstat-prepare -d tpcc
+      become: true
+      become_user: "{{ pg_owner }}"

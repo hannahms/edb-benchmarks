@@ -1,4 +1,47 @@
 ---
+- hosts: all
+  name: Start system statisticss collection
+
+  tasks:
+    - name: Clear any previously saved touchstone data
+      ansible.builtin.file:
+        path: "/tmp/sysstat-execute"
+        state: absent
+      become: true
+
+    - name: System statistics handling
+      block:
+        - name: Start stats collection
+          ansible.builtin.shell:
+            cmd: ts sysstat -o /tmp/sysstat-execute
+          become: true
+
+      rescue:
+        - name: Unexpected error, stopping stats collection
+          ansible.builtin.shell:
+            cmd: ts sysstat -o /tmp/sysstat-execute -s
+        - name: Stop from failure
+          ansible.builtin.fail:
+            msg: "failing after stopping processes"
+
+- hosts: primary
+  name: Start database statisticss collection
+
+  tasks:
+    - name: Clear any previously saved touchstone data
+      ansible.builtin.file:
+        path: "/tmp/dbstat-execute"
+        state: absent
+      become: true
+
+    - name: Start database statistics collection
+      ansible.builtin.shell:
+        cmd: >-
+          ts pgsql-stat --dbname=tpcc --host=/var/run/edb/as{{ pg_version }}
+          --port={{ pg_port }} -o /tmp/dbstat-execute
+      become: true
+      become_user: "{{ pg_owner }}"
+
 - hosts: hammerdb_driver
   name: Run TPROC-C
   become: true
@@ -25,3 +68,55 @@
         src: "/tmp/hammerdb.log"
         dest: "{{ results_directory }}/hammerdb.log"
         flat: true
+
+- hosts: primary
+  name: Stop database statisticss collection
+
+  tasks:
+    - name: Stop database statistics collection
+      ansible.builtin.shell:
+        cmd: ts pgsql-stat -o /tmp/dbstat-execute -s
+      become: true
+      become_user: "{{ pg_owner }}"
+
+- hosts: all
+  name: Stop system statisticss collection
+
+  tasks:
+    - name: System statistics handling
+      block:
+        - name: Start stats collection
+          ansible.builtin.shell:
+            cmd: ts sysstat -o /tmp/sysstat-execute -s
+          become: true
+
+- hosts: primary
+  name: Process database statisticss collection
+
+  tasks:
+    - name: Plot database data
+      ansible.builtin.shell:
+        cmd: ts plot-pgsql -i /tmp/dbstat-execute -d tpcc
+      become: true
+      become_user: "{{ pg_owner }}"
+
+- hosts: all
+  name: Stop system statisticss collection
+
+  tasks:
+    - name: Process pidstat data
+      ansible.builtin.shell:
+        cmd: ts process-pidstat -i /tmp/sysstat-execute/pidstat.txt
+      become: true
+
+    - name: Plot sar data
+      ansible.builtin.shell:
+        cmd: ts plot-sar -i /tmp/sysstat-execute/sar
+      become: true
+
+    - name: Plot pidstat data
+      ansible.builtin.shell:
+        cmd: >-
+          ts plot-pidstat -i /tmp/sysstat-execute/pidstat.csv
+          -o /tmp/sysstat-execute/pidstat
+      become: true
