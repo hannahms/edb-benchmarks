@@ -20,20 +20,22 @@ aws:
           description: "PostgreSQL"
   machines:
     postgres1:
-      type: primary
+      tags:
+        type: primary
       region: us-east-1
       az: us-east-1b
-      instance_type: c5.xlarge
+      instance_type: c5.4xlarge
       volume:
         type: io2
         size_gb: 1500
         iops: 32000
         encrypted: false
     hammerdb-driver:
-      type: hammerdb-driver
+      tags:
+        type: hammerdb-driver
       region: us-east-1
       az: us-east-1b
-      instance_type: c5.xlarge
+      instance_type: c5.4xlarge
       volume:
         type: gp2
         size_gb: 50
