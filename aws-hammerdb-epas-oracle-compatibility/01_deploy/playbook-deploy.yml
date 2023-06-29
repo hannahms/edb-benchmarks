@@ -96,7 +96,7 @@
 
         pg_postgres_conf_params:
           - name: default_with_rowids
-            value: true
+            value: "on"
 
   roles:
     - install_dbserver
