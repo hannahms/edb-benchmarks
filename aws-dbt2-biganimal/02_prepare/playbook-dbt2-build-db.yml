@@ -20,9 +20,9 @@
         # Use fake PGDATA here in order to make dbt2-pgsql-build-db working
         # with -r
         DBT2PGDATA: /tmp
-        DBT2DBNAME: "{{ infra.servers.databases.dbt2.dbname }}"
+        DBT2DBNAME: "{{ infra.servers.biganimal.dbt2.tags.dbname }}"
         PGPASSWORD: "{{ pg_password }}"
-        PGHOST: "{% if infra.servers.databases.dbt2.public_ip %}{{ infra.servers.databases.dbt2.public_ip }}{% else %}{{ infra.servers.databases.dbt2.private_ip }}{% endif %}"
+        PGHOST: "{{ infra.servers.biganimal.dbt2.public_ip }}"
       become_user: "{{ pg_owner }}"
       async: 180000
       poll: 60

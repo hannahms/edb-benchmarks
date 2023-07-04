@@ -12,16 +12,6 @@
         file: "{{ terraform_project_path }}/servers.yml"
         name: infra
 
-    - name: Load infrastructure.yml
-      ansible.builtin.include_vars:
-        file: "../infrastructure.yml"
-        name: structure
-
-    - name: Load ba-infrastructure.yml
-      ansible.builtin.include_vars:
-        file: "{{ terraform_project_path }}/ba-infrastructure.yml"
-        name: biganimal
-
     # DBT-2 driver bug workaround.
     - name: Ensure required packages are installed
       ansible.builtin.package:
@@ -32,13 +22,7 @@
     - name: Get IP address of DBaaS system
       ansible.builtin.command:
         cmd: >-
-          dig
-          {% if infra.servers.databases.dbt2.public_ip %}
-            {{ infra.servers.databases.dbt2.public_ip }}
-          {% else %}
-            {{ infra.servers.databases.dbt2.private_ip }}
-          {% endif %}
-            +short
+          dig {{ infra.servers.biganimal.dbt2.public_ip }} +short
       register: address
 
     - name: Make sure DBT2 target data dir and archive do not exist
@@ -66,7 +50,7 @@
             -A
             -a pgsql
             -d {{ dbt2_duration }}
-            -D {{ infra.servers.databases.dbt2.dbname }}
+            -D {{ infra.servers.biganimal.dbt2.tags.dbname }}
             -F {{ fpp }}
             -H {{ address.stdout_lines[-1] }}
             -n
@@ -76,7 +60,7 @@
             -u
             -w {{ dbt2_warehouse }}
             -y
-            -z "BigAnimal PostgreSQL {{ biganimal.instanceType }} | {{ biganimal.volumePropertySize }} {{ biganimal.volumeType }} | {{ biganimal.volumePropertyIOPS }} IOPS | driver {{ structure.aws.machines["dbt2-driver"].instance_type }} "
+            -z "BigAnimal PostgreSQL {{ infra.servers.biganimal.dbt2.all.instance_type }} | {{ infra.servers.biganimal.dbt2.all.storage.0.size }} {{ infra.servers.biganimal.dbt2.all.storage.0.volume_type }} | {{ infra.servers.biganimal.dbt2.all.storage.0.iops }} IOPS | Driver {{ infra.servers.machines.dbt2_driver.instance_type }}"
       environment:
         DRIVER3: "1"
         PGHOST: "{{ address.stdout_lines[-1] }}"
