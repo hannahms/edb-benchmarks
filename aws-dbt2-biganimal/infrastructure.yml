@@ -1,5 +1,7 @@
 aws:
-  cluster_name: DBT2-BigAnimal
+  tags:
+    cluster_name: DBT2-BigAnimal
+    created_by: edb-terraform
   ssh_user: rocky
   operating_system:
     name: Rocky-8-ec2-8.6-20220515.0.x86_64
@@ -25,8 +27,7 @@ aws:
           description: "PostgreSQL"
 
   machines:
-    dbt2-driver:
-      type: dbt2-driver
+    dbt2_driver:
       region: us-east-1
       zone: us-east-1b
       instance_type: c5.9xlarge
@@ -35,3 +36,24 @@ aws:
         size_gb: 50
         iops: 5000
         encrypted: false
+      tags:
+        type: dbt2-driver
+
+  biganimal:
+    dbt2:
+      project:
+        id: <PROJECT_ID>
+      region: us-east-1
+      type: ha
+      node_count: 2
+      engine: postgres
+      engine_version: 14
+      instance_type: r5.8xlarge
+      password: "1234567890zyx"
+      volume:
+        type: io2
+        properties: io2
+        size_gb: 4096
+        iops: 64000
+      tags:
+        dbname: dbt2
