@@ -24,6 +24,14 @@ do
 		-e "benchmark_duration=${BENCHMARK_DURATION}" \
 		-e "results_directory=${RESULTS_DIRECTORY}/report-data" \
 		${SCRIPT_DIR}/playbook-pgbench-run.yml
+
+	# Process results
+	ansible-playbook \
+		-i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
+		-e "@${SCRIPT_DIR}/../vars.yml" \
+		-e "pg_version=${version}" \
+		-e "results_directory=${RESULTS_DIRECTORY}/report-data" \
+		"${SCRIPT_DIR}/playbook-pgbench-process.yml"
 done
 
 # Copy infrastructure.yml and vars.yml

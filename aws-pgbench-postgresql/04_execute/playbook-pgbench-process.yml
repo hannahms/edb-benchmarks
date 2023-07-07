@@ -1,0 +1,33 @@
+---
+- hosts: pgsql1.AWS-Cluster-default.internal
+  name: Process pgbench results
+  become: false
+
+  tasks:
+    - name: Fetch pgbench data files
+      ansible.builtin.fetch:
+        src: "/tmp/pgbench-tps-{{ pg_version }}.csv"
+        dest: "./pgbench_data/pgbench-tps-{{ pg_version }}.csv"
+        flat: true
+      ignore_errors: true
+
+    - name: Generate final data points and chart
+      local_action:
+        module: ansible.builtin.shell
+        cmd: |
+          # Some distros use python for python3 since python2 is EOL
+          if command -v python3 > /dev/null
+          then
+            PLAYBOOK_PYTHON="python3"
+          else
+            PLAYBOOK_PYTHON="python"
+          fi
+          $PLAYBOOK_PYTHON {{ playbook_dir }}/post-processing.py
+      ignore_errors: true
+
+    - name: Copy data to results directory
+      local_action:
+        module: ansible.builtin.copy
+        src: "./pgbench_data/"
+        dest: "{{ results_directory }}/"
+      ignore_errors: true
