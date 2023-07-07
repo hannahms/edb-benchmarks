@@ -6,9 +6,9 @@ TERRAFORM_PLAN_FILENAME="terraform.plan"
 
 # edb-terraform saves a backup of infrastructure.yml in <project-name>/infrastructure.yml.bak
 #   this also includes the edb-terraform version used to generate the files
-edb-terraform generate --project-name ${TERRAFORM_PROJECT_NAME} \
-                       --work-path ${RESULTS_DIRECTORY} \
-                       --infra-file ../infrastructure.yml \
+edb-terraform generate --project-name "${TERRAFORM_PROJECT_NAME}" \
+                       --work-path "${RESULTS_DIRECTORY}" \
+                       --infra-file "${SCRIPT_DIR}/../infrastructure.yml" \
                        --cloud-service-provider aws
 cd "${TERRAFORM_PROJECT_PATH}"
 

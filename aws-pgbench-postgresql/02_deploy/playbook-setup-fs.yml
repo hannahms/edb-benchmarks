@@ -1,5 +1,5 @@
 ---
-- hosts: primary
+- hosts: pgsql1.AWS-Cluster-default.internal
   name: Create file systems for PGDATA and PGWAL
   become: true
   gather_facts: false
