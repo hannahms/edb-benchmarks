@@ -84,6 +84,7 @@
         PG_MAX_VERSION: "{{ pg_max_version }}"
         CLIENT_END_DURATION: "{{ client_end_duration }}"
         BENCHMARK_DURATION: "{{ benchmark_duration }}"
+        RESULTS_DIRECTORY: "{{ results_directory }}"
 
     - name: Killing Postgres
       ansible.builtin.shell: kill -9 $(pidof postgres)

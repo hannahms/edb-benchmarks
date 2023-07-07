@@ -11,6 +11,8 @@ TERRAFORM_PROJECT_PATH="${RESULTS_DIRECTORY}/${TERRAFORM_PROJECT_NAME}"
 versions=($(echo $PG_VERSIONS | tr -d '[],'))
 max_version=${versions[0]}
 
+mkdir -p "${RESULTS_DIRECTORY}/report-data"
+
 for version in "${versions[@]}"
 do
 	# Execute benchmark

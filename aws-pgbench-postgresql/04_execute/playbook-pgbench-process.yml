@@ -7,7 +7,8 @@
     - name: Fetch pgbench data files
       ansible.builtin.fetch:
         src: "/tmp/pgbench-tps-{{ pg_version }}.csv"
-        dest: "./pgbench_data/pgbench-tps-{{ pg_version }}.csv"
+        dest: "{{ results_directory }}/pgbench_data/\
+              pgbench-tps-{{ pg_version }}.csv"
         flat: true
       ignore_errors: true
 
@@ -22,12 +23,13 @@
           else
             PLAYBOOK_PYTHON="python"
           fi
-          $PLAYBOOK_PYTHON {{ playbook_dir }}/post-processing.py
+          cp {{ playbook_dir }}/post-processing.py {{ results_directory }}
+          $PLAYBOOK_PYTHON {{ results_directory }}/post-processing.py
       ignore_errors: true
 
     - name: Copy data to results directory
       local_action:
         module: ansible.builtin.copy
-        src: "./pgbench_data/"
+        src: "{{ results_directory }}/pgbench_data/"
         dest: "{{ results_directory }}/"
       ignore_errors: true
