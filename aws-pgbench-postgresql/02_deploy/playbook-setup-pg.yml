@@ -72,8 +72,8 @@
         owner: "{{ pg_owner }}"
         group: "{{ pg_group }}"
       with_nested:
-      - "{{ pg_versions }}"
-      - "{{ pg_settings }}"
+        - "{{ pg_versions }}"
+        - "{{ pg_settings }}"
 
     - name: Configure PGWAL symbolic link for each PostgreSQL instance
       ansible.builtin.shell: |

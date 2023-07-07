@@ -4,9 +4,9 @@
   become: true
   gather_facts: false
   pre_tasks:
-  - wait_for_connection:
-    delay: 5
-    timeout: 600
+    - wait_for_connection:
+      delay: 5
+      timeout: 600
 
   tasks:
     - name: Install LVM

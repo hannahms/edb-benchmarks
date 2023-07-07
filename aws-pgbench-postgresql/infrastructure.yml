@@ -1,3 +1,4 @@
+---
 aws:
   cluster_name: pgbench-postgresql
   ssh_user: rocky

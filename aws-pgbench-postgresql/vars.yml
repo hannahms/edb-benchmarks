@@ -1,3 +1,4 @@
+---
 pg_owner: postgres
 pg_group: postgres
 pg_data: /pgdata/data
