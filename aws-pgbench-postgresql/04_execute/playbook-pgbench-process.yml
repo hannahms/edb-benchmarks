@@ -16,15 +16,8 @@
       local_action:
         module: ansible.builtin.shell
         cmd: |
-          # Some distros use python for python3 since python2 is EOL
-          if command -v python3 > /dev/null
-          then
-            PLAYBOOK_PYTHON="python3"
-          else
-            PLAYBOOK_PYTHON="python"
-          fi
-          cp {{ playbook_dir }}/post-processing.py {{ results_directory }}
-          $PLAYBOOK_PYTHON {{ results_directory }}/post-processing.py
+          cp {{ playbook_dir }}/post-processing {{ results_directory }}
+          {{ results_directory }}/post-processing
       ignore_errors: true
 
     - name: Copy data to results directory

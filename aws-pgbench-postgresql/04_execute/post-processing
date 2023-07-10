@@ -1,0 +1,26 @@
+#!/bin/sh
+
+BLOCKLINES=""
+VERSIONS=$(echo "${PG_VERSIONS}" | sed -e 's/,//g')
+VERSIONS=$(echo "${VERSIONS}" | sed -e 's/\[//g')
+VERSIONS=$(echo "${VERSIONS}" | sed -e 's/\]//g')
+COUNT=0
+for VER in ${VERSIONS}; do
+	if [ $COUNT -ne 0 ]; then
+		BLOCKLINES="${BLOCKLINES}, "
+	fi
+	BLOCKLINES="${BLOCKLINES}\"pgbench_data/pgbench-tps-${VER}.csv\" using \"clients\":\"${VER}\" title \"${VER}\" with linespoints"
+	COUNT=$(( COUNT + 1 ))
+done
+
+
+TITLE="TPC-B-like (pqbench) TPS rate with scalefactor=${PGBENCH_SCALE_FACTOR}"
+gnuplot <<- __EOF__
+	set terminal pngcairo size 1600,1000
+	set title "${TITLE}"
+	set output "pgbench-tps-all.png"
+	set xlabel "clients"
+	set ylabel "TPS"
+	set grid
+	plot $BLOCKLINES
+__EOF__
