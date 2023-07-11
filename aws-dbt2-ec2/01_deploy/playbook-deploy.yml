@@ -15,6 +15,7 @@
     - name: Create {{ pg_owner }} OS user
       ansible.builtin.user:
         name: "{{ pg_owner }}"
+      when: inventory_hostname not in groups['primary']
 
   roles:
     - role: setup_repo
