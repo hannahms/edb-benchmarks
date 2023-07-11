@@ -9,7 +9,8 @@
   tasks:
     - name: Load servers.yml
       ansible.builtin.include_vars:
-        file: "{{ terraform_project_path }}/terraform/servers.yml"
+        file: "{{ terraform_project_path }}/{{ terraform_project_name }}/\
+              servers.yml"
         name: infra
 
     - name: Load infrastructure.yml
@@ -48,6 +49,7 @@
           --connections-per-processor={{ fpp }}
           --db-host={{ infra.servers.machines.postgres1.private_ip }}
           --warehouses={{ dbt2_warehouse }}
+          --districts=1
           --connection-delay={{ connection_delay }}
           --comment="AWS EC2 PostgreSQL
           {{ structure.aws.machines["postgres1"].instance_type }} |
@@ -88,5 +90,5 @@
     - name: Fetch DBT2 data files
       ansible.builtin.fetch:
         src: "/tmp/dbt2-data.tar.gz"
-        dest: "./dbt2_data/dbt2-data.tar.gz"
+        dest: "{{ results_directory }}/dbt2-data.tar.gz"
         flat: true
