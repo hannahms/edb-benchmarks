@@ -3,7 +3,8 @@
 RUNDIR=$(readlink -f "${BASH_SOURCE[0]}")
 RUNDIR=$(dirname "$RUNDIR")
 
-TERRAFORM_PROJECT_PATH="${RESULTS_DIRECTORY}/${TERRAFORM_PROJECT_NAME}"
+TERRAFORM_PROJECT_NAME="terraform"
+TERRAFORM_PROJECT_PATH="../${TERRAFORM_PROJECT_NAME}"
 TERRAFORM_PLAN_FILENAME="terraform.plan"
 
 # set biganimal project id in infrastructure.yml
@@ -11,7 +12,7 @@ sed -i "s/<PROJECT_ID>/${BA_PROJECT_ID}/g" ${RUNDIR}/../infrastructure.yml
 # edb-terraform saves a backup of infrastructure.yml in <project-name>/infrastructure.yml.bak
 #   this also includes the edb-terraform version used to generate the files
 edb-terraform generate --project-name ${TERRAFORM_PROJECT_NAME} \
-                       --work-path ${RESULTS_DIRECTORY} \
+                       --work-path ../ \
                        --infra-file ${RUNDIR}/../infrastructure.yml \
                        --user-templates ${RUNDIR}/templates/inventory.yml.tftpl \
                        --cloud-service-provider aws
@@ -27,3 +28,13 @@ terraform plan -out="$TERRAFORM_PLAN_FILENAME"
 
 # terraform.tfstate/.tfstate.backup will be left around since we use short-term credentials
 terraform apply -auto-approve "$TERRAFORM_PLAN_FILENAME"
+
+# copy files into results directory
+mkdir -p "${RESULTS_DIRECTORY}" && \ 
+rsync --archive \
+      --exclude='*tfstate*' \ # might contain secrets
+      --exclude='*ssh*' \ # short term keys currently used but can be long term
+      --exclude='.terraform/' \ # created at run-time and controlled by terraform
+      --recursive \
+      ./ \
+      "$RESULTS_DIRECTORY/terraform"
