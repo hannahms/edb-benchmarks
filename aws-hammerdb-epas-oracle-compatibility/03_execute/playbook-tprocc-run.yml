@@ -67,10 +67,11 @@
       ansible.builtin.fetch:
         src: "/tmp/hammerdb.log"
         dest: "{{ results_directory }}/hammerdb.log"
+        mode: '0644'
         flat: true
 
 - hosts: primary
-  name: Stop database statisticss collection
+  name: Stop database statisticss collection and save database log
 
   tasks:
     - name: Stop database statistics collection
@@ -78,6 +79,14 @@
         cmd: ts pgsql-stat -o /tmp/dbstat-execute -s
       become: true
       become_user: "{{ pg_owner }}"
+
+    - name: Collect log files
+      ansible.builtin.fetch:
+        src: "/var/log/edb/postgresql.log"
+        dest: "{{ results_directory }}/postgresql.log"
+        mode: '0644'
+        flat: true
+      become: true
 
 - hosts: all
   name: Stop system statisticss collection

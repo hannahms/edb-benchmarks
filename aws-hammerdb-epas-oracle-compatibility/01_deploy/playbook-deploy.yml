@@ -59,6 +59,7 @@
   pre_tasks:
     - name: Initialize the user defined variables
       set_fact:
+        disable_logging: false
         pg_hba_ip_addresses:
           - contype: "host"
             users: "all"
@@ -67,8 +68,44 @@
             source: "10.0.0.0/24"
             state: present
 
+        pg_shared_libraries_list:
+          - "$libdir/dbms_pipe"
+          - "$libdir/edb_gen"
+          - "$libdir/dbms_aq"
+          - "$libdir/edb_wait_states"
+          - "$libdir/sql-profiler"
+          - "$libdir/index_advisor"
+          - "$libdir/pg_stat_statements"
+          - "$libdir/auto_explain"
+
         pg_postgres_conf_params:
+          - name: log_filename
+            value: "postgresql.log"
           - name: default_with_rowids
+            value: "on"
+          - name: log_line_prefix
+            value: "%t [%p]: user=%u,db=%d,app=%a,client=%h "
+          - name: log_checkpoints
+            value: "on"
+          - name: log_connections
+            value: "on"
+          - name: log_disconnections
+            value: "on"
+          - name: log_lock_waits
+            value: "on"
+          - name: log_temp_files
+            value: "0"
+          - name: log_autovacuum_min_duration
+            value: "0"
+          - name: log_error_verbosity
+            value: "default"
+          - name: auto_explain.log_min_duration
+            value: "0"
+          - name: auto_explain.log_analyze
+            value: "on"
+          - name: auto_explain.log_wal
+            value: "on"
+          - name: auto_explain.log_timing
             value: "on"
 
   roles:
