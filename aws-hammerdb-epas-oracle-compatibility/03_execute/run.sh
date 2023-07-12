@@ -10,9 +10,9 @@ ansible-playbook \
 	-i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
 	-e "@../vars.yml" \
 	-e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
-	-e "results_directory=${RESULTS_DIRECTORY}/tprocc-data" \
+	-e "results_directory=${RESULTS_DIRECTORY}" \
 	./playbook-tprocc-run.yml
 
 # Copy infrastructure.yml and vars.yml
-cp "../infrastructure.yml" "$RESULTS_DIRECTORY/tprocc-data"
-cp "../vars.yml" "$RESULTS_DIRECTORY/tprocc-data"
+cp "../infrastructure.yml" "${RESULTS_DIRECTORY}"
+cp "../vars.yml" "${RESULTS_DIRECTORY}"
