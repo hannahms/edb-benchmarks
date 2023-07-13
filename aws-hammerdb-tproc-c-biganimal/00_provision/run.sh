@@ -30,11 +30,14 @@ terraform plan -out="$TERRAFORM_PLAN_FILENAME"
 terraform apply -auto-approve "$TERRAFORM_PLAN_FILENAME"
 
 # copy files into results directory
-mkdir -p "${RESULTS_DIRECTORY}" && \ 
+mkdir -p "${RESULTS_DIRECTORY}"
+# .tfstate might contain secrets
+# ssh short term keys currently used
+# .terraform created at run-time and controlled by terraform CLI 
 rsync --archive \
-      --exclude='*tfstate*' \ # might contain secrets
-      --exclude='*ssh*' \ # short term keys currently used but can be long term
-      --exclude='.terraform/' \ # created at run-time and controlled by terraform
+      --exclude="*tfstate*" \
+      --exclude="*ssh*" \
+      --exclude=".terraform/" \
       --recursive \
       ./ \
       "$RESULTS_DIRECTORY/terraform"
