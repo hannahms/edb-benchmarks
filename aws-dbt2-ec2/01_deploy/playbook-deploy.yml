@@ -8,6 +8,10 @@
     - edb_devops.edb_postgres
 
   pre_tasks:
+    - ansible.builtin.wait_for_connection:
+      delay: 5
+      timeout: 600
+
     - name: Initialize the user defined variables
       set_fact:
         enable_edb_repo: false
