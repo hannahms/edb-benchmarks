@@ -11,6 +11,6 @@ edb-terraform generate \
 		--work-path "${TERRAFORM_PROJECT_PATH}" \
 		--user-templates "${RUNDIR}/templates" \
 		--infra-file "${RUNDIR}/../infrastructure.yml"
-cd "${TERRAFORM_PROJECT_PATH}/${TERRAFORM_PROJECT_NAME}"
+cd "${TERRAFORM_PROJECT_PATH}/terraform"
 terraform init
 terraform apply -auto-approve
