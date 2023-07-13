@@ -62,16 +62,12 @@
         cmd: >
           /usr/local/pgsql-{{ pg_version }}/bin/pg_restore --if-exists --clean -j 4 {{ pg_data }}/backup -d pgbench
       become_user: "{{ pg_owner }}"
-      async: 180000
-      poll: 60
 
     - name: Vacuuming pgbench database
       ansible.builtin.command:
         cmd: >
           /usr/local/pgsql-{{ pg_version }}/bin/vacuumdb -d pgbench -F -j 4 -z
       become_user: "{{ pg_owner }}"     
-      async: 120000
-      poll: 60
 
     # Run the benchmark script
     - name: Execute the benchmark
