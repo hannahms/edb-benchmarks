@@ -4,6 +4,7 @@ BLOCKLINES=""
 VERSIONS=$(echo "${PG_VERSIONS}" | sed -e 's/,//g')
 VERSIONS=$(echo "${VERSIONS}" | sed -e 's/\[//g')
 VERSIONS=$(echo "${VERSIONS}" | sed -e 's/\]//g')
+VERSIONS=$(echo "${VERSIONS}" | sed -e "s/'//g")
 COUNT=0
 for VER in ${VERSIONS}; do
 	if [ $COUNT -ne 0 ]; then
