@@ -14,15 +14,9 @@
 
     - name: Generate final data points and chart
       local_action:
+        chdir: "{{ results_directory }}"
         module: ansible.builtin.shell
         cmd: |
           cp {{ playbook_dir }}/post-processing {{ results_directory }}
           {{ results_directory }}/post-processing
-      ignore_errors: true
-
-    - name: Copy data to results directory
-      local_action:
-        module: ansible.builtin.copy
-        src: "{{ results_directory }}/pgbench_data/"
-        dest: "{{ results_directory }}/"
       ignore_errors: true
