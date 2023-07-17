@@ -9,7 +9,7 @@ RESULTS_DIRECTORY="${SOURCEDIR}/../results"
 edb-terraform generate \
 		--cloud-service-provider aws \
 		--project-name "${TERRAFORM_PROJECT_NAME}" \
-		--work-path "${TERRAFORM_PROJECT_PATH}" \
+		--work-path "${SOURCEDIR}/../" \
 		--user-templates "${SOURCEDIR}/templates" \
 		--infra-file "${SOURCEDIR}/../infrastructure.yml"
 cd "${TERRAFORM_PROJECT_PATH}"
