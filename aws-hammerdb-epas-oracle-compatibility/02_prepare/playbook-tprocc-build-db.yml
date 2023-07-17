@@ -86,3 +86,15 @@
         cmd: ts plot-pgsql -i /tmp/dbstat-prepare -d tpcc
       become: true
       become_user: "{{ pg_owner }}"
+
+    - name: Fetch system statistics
+      ansible.posix.synchronize:
+        mode: pull
+        src: "/tmp/sysstat-prepare"
+        dest: "{{ results_directory }}/prepare/{{ inventory_hostname }}"
+
+    - name: Fetch database statistics
+      ansible.posix.synchronize:
+        mode: pull
+        src: "/tmp/dbstat-prepare"
+        dest: "{{ results_directory }}/prepare/{{ inventory_hostname }}"

@@ -113,6 +113,12 @@
       become: true
       become_user: "{{ pg_owner }}"
 
+    - name: Fetch database statistics
+      ansible.posix.synchronize:
+        mode: pull
+        src: "/tmp/dbstat-execute"
+        dest: "{{ results_directory }}/execute/{{ inventory_hostname }}"
+
 - hosts: all
   name: Stop system statisticss collection
 
@@ -133,3 +139,9 @@
           ts plot-pidstat -i /tmp/sysstat-execute/pidstat.csv
           -o /tmp/sysstat-execute/pidstat
       become: true
+
+    - name: Fetch system statistics
+      ansible.posix.synchronize:
+        mode: pull
+        src: "/tmp/sysstat-execute"
+        dest: "{{ results_directory }}/execute/{{ inventory_hostname }}"

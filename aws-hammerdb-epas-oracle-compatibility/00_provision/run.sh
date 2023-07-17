@@ -25,6 +25,9 @@ terraform apply -auto-approve "$TERRAFORM_PLAN_FILENAME"
 
 # copy files into results directory
 mkdir -p "${RESULTS_DIRECTORY}"
+mkdir -p "${RESULTS_DIRECTORY}/prepare"
+mkdir -p "${RESULTS_DIRECTORY}/execute"
+
 # .tfstate might contain secrets
 # ssh short term keys currently used
 # .terraform created at run-time and controlled by terraform CLI 
