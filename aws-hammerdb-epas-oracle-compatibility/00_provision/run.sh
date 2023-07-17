@@ -4,6 +4,7 @@ SOURCEDIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
 TERRAFORM_PROJECT_NAME="terraform"
 TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
 TERRAFORM_PLAN_FILENAME="terraform.plan"
+RESULTS_DIRECTORY="${SOURCEDIR}/../results"
 
 # edb-terraform saves a backup of infrastructure.yml in <project-name>/infrastructure.yml.bak
 #   this also includes the edb-terraform version used to generate the files

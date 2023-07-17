@@ -1,5 +1,5 @@
 #!/bin/bash -eux
-# Push HammerDB files to the S3 bucket
+RESULTS_DIRECTORY="${SOURCEDIR}/../results"
 date=$(date +'%Y-%m-%dT%H:%M:%S')
 
 # Upload benchmark data
