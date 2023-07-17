@@ -15,6 +15,8 @@
           ansible.builtin.shell:
             cmd: ts sysstat -o /tmp/sysstat-execute
           become: true
+          async: 1
+          poll: 0
 
       rescue:
         - name: Unexpected error, stopping stats collection
@@ -41,6 +43,8 @@
           --port={{ pg_port }} -o /tmp/dbstat-execute
       become: true
       become_user: "{{ pg_owner }}"
+      async: 1
+      poll: 0
 
 - hosts: hammerdb_driver
   name: Run TPROC-C

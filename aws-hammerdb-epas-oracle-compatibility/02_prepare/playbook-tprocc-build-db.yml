@@ -18,6 +18,8 @@
           ansible.builtin.shell:
             cmd: ts sysstat -o /tmp/sysstat-prepare
           become: true
+          async: 1
+          poll: 0
 
       rescue:
         - name: Unexpected error, stopping stats collection
@@ -35,6 +37,8 @@
       become: true
       become_user: "{{ pg_owner }}"
       ignore_errors: true
+      async: 1
+      poll: 0
 
     - name: Build TPROC-C database
       ansible.builtin.shell:
