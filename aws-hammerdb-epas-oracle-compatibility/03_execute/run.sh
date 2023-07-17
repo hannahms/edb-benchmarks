@@ -1,18 +1,22 @@
 #!/bin/bash -eux
 
+SOURCEDIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+TERRAFORM_PROJECT_NAME="terraform"
+TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
+
 export ANSIBLE_PIPELINING=true
 export ANSIBLE_SSH_PIPELINING=true
 export ANSIBLE_HOST_KEY_CHECKING=false
-TERRAFORM_PROJECT_PATH="..CT_NAME}"
 
 # Run the benchmark
 ansible-playbook \
 	-i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
-	-e "@../vars.yml" \
+	-e "@${SOURCEDIR}/../vars.yml" \
 	-e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
 	-e "results_directory=${RESULTS_DIRECTORY}" \
-	./playbook-tprocc-run.yml
+	"${SOURCEDIR}/playbook-tprocc-run.yml"
 
 # Copy infrastructure.yml and vars.yml
-cp "../infrastructure.yml" "${RESULTS_DIRECTORY}"
-cp "../vars.yml" "${RESULTS_DIRECTORY}"
+cp "${SOURCEDIR}/../infrastructure.yml" \
+		"${SOURCEDIR}/../vars.yml" \
+		"${RESULTS_DIRECTORY}"

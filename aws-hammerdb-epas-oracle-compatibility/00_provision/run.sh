@@ -1,16 +1,16 @@
 #!/bin/bash -eux
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+SOURCEDIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
 TERRAFORM_PROJECT_NAME="terraform"
-TERRAFORM_PROJECT_PATH="../${TERRAFORM_PROJECT_NAME}"
+TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
 TERRAFORM_PLAN_FILENAME="terraform.plan"
 
 # edb-terraform saves a backup of infrastructure.yml in <project-name>/infrastructure.yml.bak
 #   this also includes the edb-terraform version used to generate the files
 edb-terraform generate --project-name ${TERRAFORM_PROJECT_NAME} \
-                       --work-path ../ \
-                       --infra-file "${SCRIPT_DIR}/../infrastructure.yml" \
-					   --user-templates "${SCRIPT_DIR}/templates" \
+                       --work-path "${SOURCEDIR}/../" \
+                       --infra-file "${SOURCEDIR}/../infrastructure.yml" \
+					   --user-templates "${SOURCEDIR}/templates" \
                        --cloud-service-provider aws
 cd "${TERRAFORM_PROJECT_PATH}"
 
@@ -32,5 +32,5 @@ rsync --archive \
       --exclude="*ssh*" \
       --exclude=".terraform/" \
       --recursive \
-      ./ \
-      "$RESULTS_DIRECTORY/terraform"
+      ${TERRAFORM_PROJECT_PATH} \
+      "${RESULTS_DIRECTORY}/"
