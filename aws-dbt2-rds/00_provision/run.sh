@@ -6,11 +6,28 @@ TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
 TERRAFORM_PLAN_FILENAME="terraform.plan"
 RESULTS_DIRECTORY="${SOURCEDIR}/../results"
 
+ansible-playbook $RUNDIR/generate.yml \
+      -e "template_file=$RUNDIR/templates/infrastructure.yml.j2" \
+      -e "dest_file=$RUNDIR/../infrastructure.yml" \
+      -e "@$RUNDIR/../vars.yml" \
+      -e "region=us-east-1" \
+      -e "zone0=us-east-1b" \
+      -e "zone1=us-east-1c" \
+      -e "instance_type=c5.9xlarge" \
+      -e "pg_instance_type=db.r5.8xlarge" \
+      -e "pg_storage_type=io1" \
+      -e "pg_storage_size=4096" \
+      -e "pg_storage_iops=64000" \
+      -e "pg_engine=postgres" \
+      -e "pg_version=14" \
+      -e "pg_password=12Password!" \
+      -e "pg_port=5432"
+
 # edb-terraform saves a backup of infrastructure.yml in <project-name>/infrastructure.yml.bak
 #   this also includes the edb-terraform version used to generate the files
 edb-terraform generate --project-name "${TERRAFORM_PROJECT_NAME}" \
                        --work-path "${SOURCEDIR}/../" \
-                       --infra-file "${SOURCEDIR}../infrastructure.yml" \
+                       --infra-file "${SOURCEDIR}/../infrastructure.yml" \
                        --cloud-service-provider aws
 cd "${TERRAFORM_PROJECT_PATH}"
 
