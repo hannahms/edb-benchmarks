@@ -2,7 +2,7 @@
 - hosts: all
   name: Install repository
   become: true
-  gather_facts: true
+  gather_facts: false
 
   collections:
     - edb_devops.edb_postgres
