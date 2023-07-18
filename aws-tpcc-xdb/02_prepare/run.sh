@@ -1,31 +1,33 @@
 #!/bin/bash -eux
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+SOURCEDIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+TERRAFORM_PROJECT_NAME="terraform"
+TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
 
 export ANSIBLE_PIPELINING=true
+export ANSIBLE_SSH_ARGS="-o ForwardX11=no -o UserKnownHostsFile=/dev/null"
 export ANSIBLE_SSH_PIPELINING=true
 export ANSIBLE_HOST_KEY_CHECKING=false
-TERRAFORM_PROJECT_PATH="../terraform"
 
 ansible-playbook \
 	-u ${SSH_USER} \
 	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-	-i ${SCRIPT_DIR}/../inventory.yml \
-	-e "@${SCRIPT_DIR}/../vars.yml" \
+	-i ${SOURCEDIR}/../inventory.yml \
+	-e "@${SOURCEDIR}/../vars.yml" \
 	-e "tpcc_warehouse=${TPCC_WAREHOUSE}" \
 	-e "tpcc_loader_vusers=${TPCC_LOADER_VUSERS}" \
-	${SCRIPT_DIR}/playbook-tpcc-build-db.yml
+	${SOURCEDIR}/playbook-tpcc-build-db.yml
 
 ansible-playbook \
 	-u ${SSH_USER} \
 	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-	-i ${SCRIPT_DIR}/../inventory.yml \
-	-e "@${SCRIPT_DIR}/../vars.yml" \
-	${SCRIPT_DIR}/playbook-post-build-db.yml
+	-i ${SOURCEDIR}/../inventory.yml \
+	-e "@${SOURCEDIR}/../vars.yml" \
+	${SOURCEDIR}/playbook-post-build-db.yml
 
 ansible-playbook \
 	-u ${SSH_USER} \
 	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-	-i ${SCRIPT_DIR}/../inventory.yml \
-	-e "@${SCRIPT_DIR}/../vars.yml" \
-	${SCRIPT_DIR}/playbook-setup-xdbserver.yml
+	-i ${SOURCEDIR}/../inventory.yml \
+	-e "@${SOURCEDIR}/../vars.yml" \
+	${SOURCEDIR}/playbook-setup-xdbserver.yml
