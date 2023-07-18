@@ -1,37 +1,37 @@
 #!/bin/bash -eux
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
-SSH_USER=rocky
+SOURCEDIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+TERRAFORM_PROJECT_NAME="terraform"
+TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
 
 export ANSIBLE_PIPELINING=true
+export ANSIBLE_SSH_ARGS="-o ForwardX11=no -o UserKnownHostsFile=/dev/null"
 export ANSIBLE_SSH_PIPELINING=true
 export ANSIBLE_HOST_KEY_CHECKING=false
-TERRAFORM_PROJECT_PATH="../terraform"
 
-python3 ${SCRIPT_DIR}/build-inventory.py ${TERRAFORM_PROJECT_PATH}
-mv ${SCRIPT_DIR}/inventory.yml ${SCRIPT_DIR}/../.
+python3 ${SOURCEDIR}/build-inventory.py ${TERRAFORM_PROJECT_PATH}
+mv ${SOURCEDIR}/inventory.yml ${SOURCEDIR}/../.
 
 # Setup file systems
 ansible-playbook \
 	-u ${SSH_USER} \
 	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-	-i ${SCRIPT_DIR}/../inventory.yml \
-	-e "@${SCRIPT_DIR}/../vars.yml" \
-	${SCRIPT_DIR}/playbook-setup-fs.yml
+	-i ${SOURCEDIR}/../inventory.yml \
+	-e "@${SOURCEDIR}/../vars.yml" \
+	${SOURCEDIR}/playbook-setup-fs.yml
 
 ansible-playbook \
 	-u ${SSH_USER} \
 	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-	-i ${SCRIPT_DIR}/../inventory.yml \
-	-e "@${SCRIPT_DIR}/../vars.yml" \
+	-i ${SOURCEDIR}/../inventory.yml \
+	-e "@${SOURCEDIR}/../vars.yml" \
 	-e "repo_username=${EDB_REPO_USERNAME}" \
 	-e "repo_password=${EDB_REPO_PASSWORD}" \
-	${SCRIPT_DIR}/playbook-deploy.yml
+	${SOURCEDIR}/playbook-deploy.yml
 
 ansible-playbook \
 	-u ${SSH_USER} \
 	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-	-i ${SCRIPT_DIR}/../inventory.yml \
-	-e "@${SCRIPT_DIR}/../vars.yml" \
-	${SCRIPT_DIR}/playbook-hammerdb-setup.yml
+	-i ${SOURCEDIR}/../inventory.yml \
+	-e "@${SOURCEDIR}/../vars.yml" \
+	${SOURCEDIR}/playbook-hammerdb-setup.yml
