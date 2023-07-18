@@ -12,6 +12,9 @@
       delay: 5
       timeout: 600
 
+    - name: Gather facts for first time
+      ansible.builtin.setup:
+
     - name: Initialize the user defined variables
       set_fact:
         enable_edb_repo: false
