@@ -1,0 +1,32 @@
+#  The metric_names below are metric-statistics for use with AWS/RDS DBInstanceIdentifier.
+---
+  metric_names:
+    - BufferCacheHitRatio
+    - CommitLatency
+    - CommitThroughput
+    - CPUUtilization
+    - DatabaseConnections
+    - Deadlocks
+    - DiskQueueDepth
+    - EBSByteBalance%
+    - EBSIOBalance%
+    - EngineUptime
+    - FreeableMemory
+    - FreeLocalStorage
+    - MaximumUsedTransactionIDs
+    - NetworkReceiveThroughput
+    - NetworkTransmitThroughput
+    - OldestReplicationSlotLag
+    - RDSToAuroraPostgreSQLReplicaLag
+    - ReadIOPS
+    - ReadLatency
+    - ReadThroughput
+    - ReplicationSlotDiskUsage
+    - StorageNetworkReceiveThroughput
+    - StorageNetworkThroughput
+    - StorageNetworkTransmitThroughput
+    - SwapUsage
+    - TransactionLogsDiskUsage
+    - WriteIOPS
+    - WriteLatency
+    - WriteThroughput
