@@ -1,5 +1,11 @@
 #!/bin/bash -eux
 
+SOURCEDIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+TERRAFORM_PROJECT_NAME="terraform"
+TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
+TERRAFORM_PLAN_FILENAME="terraform.plan"
+RESULTS_DIRECTORY="${SOURCEDIR}/../results"
+
 if (( $(echo "$tpcc_warehouse < 15" | bc -l) )); then
    echo "tpcc_warehouse: $tpcc_warehouse";
    echo "HammerDB Warehouses, cannot be lower than 15!"
