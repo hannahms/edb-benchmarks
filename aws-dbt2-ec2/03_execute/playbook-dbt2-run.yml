@@ -50,6 +50,7 @@
           --warehouses={{ dbt2_warehouse }}
           --districts=1
           --connection-delay={{ connection_delay }}
+          --stats
           --comment="AWS EC2 PostgreSQL
           {{ structure.aws.machines["postgres1"].instance_type }} |
           {{ structure.aws.machines["postgres1"].volume.size_gb }} GB
