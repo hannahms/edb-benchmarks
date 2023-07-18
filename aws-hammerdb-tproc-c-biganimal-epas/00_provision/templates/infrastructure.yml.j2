@@ -6,11 +6,10 @@ aws:
     name: Rocky-8-ec2-8.6-20220515.0.x86_64
     owner: 679593333241
   regions:
-    us-east-1:
+    {{ region ]}:
       cidr_block: 10.0.0.0/16
       azs:
-        us-east-1b: 10.0.0.0/24
-        us-east-1c: 10.0.1.0/24
+        {{ zone0 }} : 10.0.0.0/24
       service_ports:
         - port: 22
           protocol: tcp
@@ -21,9 +20,9 @@ aws:
 
   machines:
     hammerdb-driver:
-      region: us-east-1
-      az: us-east-1b
-      instance_type: c5.9xlarge
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ instance_type }}
       volume:
         type: gp2
         size_gb: 50
@@ -35,19 +34,19 @@ aws:
   biganimal:
     tprocc:
       project:
-        id: <PROJECT_ID>
-      region: us-east-1
+        id: {{ ba_project_id }}
+      region: {{ region }}
       type: single
       node_count: 1
-      engine: epas
-      engine_version: 14
-      instance_type: r5.4xlarge
-      password: "1234567890zyx"
+      engine: {{ pg_engine }}
+      engine_version: {{ pg_version }}
+      instance_type: {{ pg_instance_type }}
+      password: {{ pg_password }}
       volume:
-        type: io2
-        properties: io2
-        size_gb: 300
-        iops: 15000
+        type: {{ pg_storage_type }}
+        properties: {{ pg_storage_properties }}
+        size_gb: {{ pg_storage_size }}
+        iops: {{ pg_storage_iops }}
       settings:
         - name: default_with_rowids
           value: true

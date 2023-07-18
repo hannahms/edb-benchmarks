@@ -27,11 +27,9 @@ ansible-playbook "$RUNDIR/generate.yml" \
 #   this also includes the edb-terraform version used to generate the files
 edb-terraform generate --project-name "${TERRAFORM_PROJECT_NAME}" \
                        --work-path "${SOURCEDIR}/../" \
-                       --infra-file "${SOURCEDIR}../infrastructure.yml" \
+                       --infra-file "${SOURCEDIR}/../infrastructure.yml" \
                        --user-templates "${SOURCEDIR}/templates/inventory.yml.tftpl" \
                        --cloud-service-provider aws
-# reset biganimal project id for reuse and edb-terraform creates infrastructure.yml.bak within the project directory
-sed -i "s/${BA_PROJECT_ID}/<PROJECT_ID>/g" "${SOURCEDIR}/../infrastructure.yml"
 cd "${TERRAFORM_PROJECT_PATH}"
 
 # .terraform.lock.hcl will be saved here by terraform to lock provider versions and can be reused
