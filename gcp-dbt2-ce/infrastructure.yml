@@ -1,0 +1,49 @@
+---
+gcloud:
+  tags:
+    created_by: edb-benchmarks
+    cluster_name: gcp-dbt2-vm
+  images:
+    rocky:
+      name: rocky-linux-8
+      ssh_user: rocky
+  regions:
+    us-west1:
+      cidr_block: 10.1.0.0/16
+      zones:
+        main:
+          zone: us-west1-b
+          cidr: 10.1.20.0/24
+      service_ports:
+        - port: 22
+          protocol: tcp
+          description: "SSH"
+      region_ports:
+        - port: 5432
+          protocol: tcp
+          description: "pgsql"
+  machines:
+    dbt2-driver:
+      image_name: rocky
+      zone_name: main
+      tags:
+        type: dbt2-driver
+      region: us-west1
+      zone: us-west1-b
+      instance_type: c2-standard-30
+      volume:
+        type: pd-standard
+        size_gb: 50
+    postgres1:
+      image_name: rocky
+      zone_name: main
+      tags:
+        type: primary
+      region: us-west1
+      zone: us-west1-b
+      instance_type: c2-standard-30
+      volume:
+        size_gb: 50
+        type: pd-ssd
+        iops: 1000
+        encrypted: false
