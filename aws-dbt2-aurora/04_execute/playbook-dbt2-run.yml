@@ -79,14 +79,10 @@
             -y
             -z "Aurora PostgreSQL {{ structure.aws.aurora.dbt2.instance_type }} | driver {{ structure.aws.machines["dbt2-driver"].instance_type }} "
       environment:
-        DRIVER3: "1"
         PGHOST: "{{ address.stdout_lines[-1] }}"
       become: true
       become_user: "{{ pg_owner }}"
       register: run_workload
-      # 04/21/2023 - Commented because was causing the benchmark to fail
-      #async: 180000
-      #poll: 60
       changed_when: false
       register: result
 
