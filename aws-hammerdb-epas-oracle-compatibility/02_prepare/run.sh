@@ -6,9 +6,9 @@ TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
 RESULTS_DIRECTORY="${SOURCEDIR}/../results"
 
 export ANSIBLE_PIPELINING=true
+export ANSIBLE_SSH_ARGS="-o ForwardX11=no -o UserKnownHostsFile=/dev/null"
 export ANSIBLE_SSH_PIPELINING=true
 export ANSIBLE_HOST_KEY_CHECKING=false
-export ANSIBLE_SSH_ARGS="-o ForwardX11=no -o UserKnownHostsFile=/dev/null"
 
 ansible-playbook \
 	-i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
