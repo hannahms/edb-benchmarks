@@ -9,7 +9,7 @@
   tasks:
     - name: Load servers.yml
       ansible.builtin.include_vars:
-        file: "{{ terraform_project_path }}/terraform/servers.yml"
+        file: "{{ terraform_project_path }}/servers.yml"
         name: infra
 
     - name: Load infrastructure.yml
