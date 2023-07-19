@@ -6,10 +6,10 @@ TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
 TERRAFORM_PLAN_FILENAME="terraform.plan"
 RESULTS_DIRECTORY="${SOURCEDIR}/../results"
 
-ansible-playbook $RUNDIR/generate.yml \
-      -e "template_file=$RUNDIR/../templates/infrastructure.yml.j2" \
-      -e "dest_file=$RUNDIR/../infrastructure.yml" \
-      -e "@$RUNDIR/../vars.yml" \
+ansible-playbook $SOURCEDIR/generate.yml \
+      -e "template_file=$SOURCEDIR/../templates/infrastructure.yml.j2" \
+      -e "dest_file=$SOURCEDIR/../infrastructure.yml" \
+      -e "@$SOURCEDIR/../vars.yml" \
       -e "region=us-east-1" \
       -e "zone0=us-east-1b" \
       -e "instance_type=c5.9xlarge" \
