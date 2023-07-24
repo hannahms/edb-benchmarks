@@ -67,6 +67,57 @@
       set_fact:
         disable_logging: false
 
+        # Tempory dirty hack.
+        pg_postgres_conf_params:
+          - name: autovacuum_max_workers
+            value: "5"
+          - name: autovacuum_vacuum_cost_limit
+            value: "3000"
+          - name: checkpoint_timeout
+            value: "15min"
+          - name: cpu_tuple_cost
+            value: "0.03"
+          - name: effective_cache_size
+            value: "192GB"
+          - name: maintenance_work_mem
+            value: "1GB"
+          - name: max_parallel_workers
+            value: "32"
+          - name: max_wal_size
+            value: "1GB"
+          - name: max_worker_processes
+            value: "32"
+          - name: min_wal_size
+            value: "80MB"
+          - name: random_page_cost
+            value: "1.1"
+          - name: segment_size
+            value: "1GB"
+          - name: shared_buffers
+            value: "64GB"
+          - name: ssl
+            value: "on"
+          - name: tcp_keepalives_count
+            value: "9"
+          - name: tcp_keepalives_idle
+            value: "120"
+          - name: tcp_keepalives_interval
+            value: "30"
+          - name: temp_buffers
+            value: "8MB"
+          - name: wal_buffers
+            value: "64MB"
+          - name: wal_compression
+            value: "on"
+          - name: wal_keep_size
+            value: "512MB"
+          - name: wal_log_hints
+            value: "on"
+          - name: wal_receiver_timeout
+            value: "5s"
+          - name: wal_writer_flush_after
+            value: "1MB"
+
   roles:
     - install_dbserver
     - init_dbserver
