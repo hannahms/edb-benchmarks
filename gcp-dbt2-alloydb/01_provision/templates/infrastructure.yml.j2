@@ -8,11 +8,11 @@ gcloud:
       name: rocky-linux-8
       ssh_user: rocky
   regions:
-    us-west1:
+    {{ region }}:
       cidr_block: 10.1.0.0/16
       zones:
         main:
-          zone: us-west1-b
+          zone: {{ zone0 }}
           cidr: 10.1.20.0/24
       service_ports:
         - port: 22
@@ -28,14 +28,13 @@ gcloud:
       zone_name: main
       tags:
         type: dbt2-driver
-      region: us-west1
-      zone: us-west1-b
-      instance_type: c2-standard-30
+      region: {{ region }}
+      instance_type: {{ instance_type }}
       volume:
         type: pd-standard
         size_gb: 50
   alloy:
     alloydb1:
-      region: us-west1
-      cpu_count: 32
-      password: "12Password!"
+      region: {{ region }}
+      cpu_count: {{ pg_cores }}
+      password: {{ pg_password }}
