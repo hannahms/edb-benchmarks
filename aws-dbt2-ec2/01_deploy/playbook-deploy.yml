@@ -91,8 +91,6 @@
             value: "80MB"
           - name: random_page_cost
             value: "1.1"
-          - name: segment_size
-            value: "1GB"
           - name: shared_buffers
             value: "64GB"
           - name: ssl
