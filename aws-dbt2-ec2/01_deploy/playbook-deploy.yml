@@ -95,12 +95,6 @@
             value: "64GB"
           - name: ssl
             value: "on"
-          - name: tcp_keepalives_count
-            value: "9"
-          - name: tcp_keepalives_idle
-            value: "120"
-          - name: tcp_keepalives_interval
-            value: "30"
           - name: temp_buffers
             value: "8MB"
           - name: wal_buffers
