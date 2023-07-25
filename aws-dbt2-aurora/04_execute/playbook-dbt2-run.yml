@@ -55,6 +55,11 @@
       ansible.builtin.set_fact:
         fpp: "{{ ((dbt2_connections | int) / ansible_processor_nproc) | int  }}"
 
+    - name: Get start time
+      include_role:
+        name: get-aws-cloudwatch-aurora-postgres-stats
+        tasks_from: get-start-time.yml
+
     # Use dbt2_connections as a limit to the number of connections that may be
     # opened, which are opened in units matching the number of processors on
     # the driver system.  Also target a 45 minute (2,700,000 ms) rampup time,
@@ -85,6 +90,11 @@
       register: run_workload
       changed_when: false
       register: result
+
+    - name: Get end time
+      include_role:
+        name: get-aws-cloudwatch-aurora-postgres-stats
+        tasks_from: get-end-time.yml
 
     - name: Workload execution output
       ansible.builtin.debug:
@@ -118,3 +128,8 @@
         cmd: |
           tar xzf "{{ results_directory }}/dbt2-data.tar.gz" -C "{{ results_directory }}"
       delegate_to: localhost
+
+    - name: Process metrics
+      include_role:
+        name: get-aws-cloudwatch-aurora-postgres-stats
+        tasks_from: process-metrics.yml
