@@ -13,7 +13,7 @@ export INSTANCE_TYPE="${INSTANCE_TYPE:=c2-standard-30}"
 
 # Postgres Settings
 export PG_INSTANCE_TYPE="${PG_INSTANCE_TYPE:=c2-standard-30}"
-export PG_STORAGE_TYPE="${PG_STORAGE_TYPE:=ssd}"
+export PG_STORAGE_TYPE="${PG_STORAGE_TYPE:=pd-ssd}"
 export PG_STORAGE_SIZE="${PG_STORAGE_SIZE:=4096}"
 export PG_STORAGE_IOPS="${PG_STORAGE_IOPS:=1000}"
 
