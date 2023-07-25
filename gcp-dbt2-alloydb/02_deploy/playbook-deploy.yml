@@ -22,7 +22,7 @@
     - name: Create {{ pg_owner }} OS user
       ansible.builtin.user:
         name: "{{ pg_owner }}"
-      when: inventory_hostname not in groups['primary']
+      when: "'primary' not in group_names"
 
   roles:
     - role: setup_repo
@@ -53,22 +53,3 @@
         group: "{{ pg_group }}"
         mode: "0600"
       become: true
-
-- hosts: primary
-  name: Install PostgreSQL
-  become: true
-  gather_facts: true
-
-  collections:
-    - edb_devops.edb_postgres
-
-  pre_tasks:
-    - name: Initialize the user defined variables
-      set_fact:
-        disable_logging: false
-
-  roles:
-    - install_dbserver
-    - init_dbserver
-    - manage_dbserver
-    - setup_dbt2
