@@ -38,7 +38,7 @@ aws:
       type: dbt2-driver
       region: {{ region }}
       az: {{ zone0 }}
-      instance_type: {{ instance_type }}
+      instance_type: {{ driver_instance_type }}
       volume:
         type: gp2
         size_gb: 50
