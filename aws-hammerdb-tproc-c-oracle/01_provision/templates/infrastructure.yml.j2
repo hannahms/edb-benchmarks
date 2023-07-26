@@ -21,7 +21,8 @@ aws:
 
   machines:
     hammerdb-driver:
-      type: hammerdb-driver
+      tags:
+        type: hammerdb-driver
       region: {{ region }}
       az: {{ zone1 }}
       instance_type: {{ driver_instance_type }}
