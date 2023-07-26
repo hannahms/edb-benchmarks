@@ -12,6 +12,12 @@ export ANSIBLE_VERBOSITY="${ANSIBLE_VERBOSITY:=0}"
 
 # Terraform
 export SSH_USER="${SSH_USER:=rocky}"
+export REGION="${REGION:=us-east-1}"
+export ZONE0="${ZONE0:=us-east-1b}"
+# Benchmarker instance
+export DRIVER_INSTANCE_TYPE="${DRIVER_INSTANCE_TYPE:=c5.9xlarge}"
+# Postgres Instance
+export PG_INSTANCE_TYPE="${PG_INSTANCE_TYPE:=c5d.12xlarge}" # Assumes attached storage devices from instance type
 
 # TPCC
 export TPCC_DURATION="${TPCC_DURATION:=20}"
