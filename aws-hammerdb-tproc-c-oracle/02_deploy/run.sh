@@ -13,12 +13,10 @@ python3 ./build-inventory.py "${TERRAFORM_PROJECT_PATH}"
 mv inventory.yml ../.
 
 ansible-playbook \
-	-u ${SSH_USER} \
-	--private-key "${TERRAFORM_PROJECT_PATH}/ssh-id_rsa" \
-	-i ../inventory.yml \
-	-e "@../vars.yml" \
-	-e "tprocc_duration=${TPROCC_DURATION}" \
-	-e "tprocc_vusers=${TPROCC_VUSERS}" \
-	-e "tprocc_warehouse=${TPROCC_WAREHOUSE}" \
-	-e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
-	./playbook-deploy.yml
+    -u ${SSH_USER} \
+    --private-key "${TERRAFORM_PROJECT_PATH}/ssh-id_rsa" \
+    -i "$SOURCEDIR/../inventory.yml" \
+    -e "@$SOURCEDIR/../environment.yml" \
+    -e "@$SOURCEDIR/../vars.yml" \
+    -e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
+    ./playbook-deploy.yml
