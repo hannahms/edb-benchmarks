@@ -9,7 +9,7 @@ export ANSIBLE_VERBOSITY="${ANSIBLE_VERBOSITY:=0}"
 # TERRAFORM VARIABLES
 export REGION="${REGION:=us-west1}"
 export ZONE0="${ZONE0:=us-west1-b}"
-export INSTANCE_TYPE="${INSTANCE_TYPE:=c2-standard-30}"
+export DRIVER_INSTANCE_TYPE="${DRIVER_INSTANCE_TYPE:=c2-standard-30}"
 
 # Postgres Settings
 export PG_CORES="${PG_CORES:=32}"
