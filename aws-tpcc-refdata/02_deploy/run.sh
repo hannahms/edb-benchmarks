@@ -14,24 +14,25 @@ mv ${SOURCEDIR}/inventory.yml ${SOURCEDIR}/../.
 
 # Setup file systems
 ansible-playbook \
-	-u ${SSH_USER} \
-	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-	-i ${SOURCEDIR}/../inventory.yml \
-	-e "@${SOURCEDIR}/../vars.yml" \
-	${SOURCEDIR}/playbook-setup-fs.yml
+    -u ${SSH_USER} \
+    --private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
+    -i "${SOURCEDIR}/../inventory.yml" \
+    -e "@$SOURCEDIR/../environment.yml" \
+    -e "@$SOURCEDIR/../vars.yml" \
+    "${SOURCEDIR}/playbook-setup-fs.yml"
 
 ansible-playbook \
-	-u ${SSH_USER} \
-	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-	-i ${SOURCEDIR}/../inventory.yml \
-	-e "@${SOURCEDIR}/../vars.yml" \
-	-e "repo_username=${EDB_REPO_USERNAME}" \
-	-e "repo_password=${EDB_REPO_PASSWORD}" \
-	${SOURCEDIR}/playbook-deploy.yml
+    -u ${SSH_USER} \
+    --private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
+    -i "${SOURCEDIR}/../inventory.yml" \
+    -e "@$SOURCEDIR/../environment.yml" \
+    -e "@$SOURCEDIR/../vars.yml" \
+    "${SOURCEDIR}/playbook-deploy.yml"
 
 ansible-playbook \
-	-u ${SSH_USER} \
-	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-	-i ${SOURCEDIR}/../inventory.yml \
-	-e "@${SOURCEDIR}/../vars.yml" \
-	${SOURCEDIR}/playbook-hammerdb-setup.yml
+    -u ${SSH_USER} \
+    --private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
+    -i "${SOURCEDIR}/../inventory.yml" \
+    -e "@$SOURCEDIR/../environment.yml" \
+    -e "@$SOURCEDIR/../vars.yml" \
+    "${SOURCEDIR}/playbook-hammerdb-setup.yml"
