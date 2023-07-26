@@ -12,19 +12,14 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 
 # Run the ramping up benchmark
 ansible-playbook \
-	-u ${SSH_USER} \
-	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-	-i ${SOURCEDIR}/../inventory.yml \
-	-e "@${SOURCEDIR}/../vars.yml" \
-	-e "TPCC_WAREHOUSE=${TPCC_WAREHOUSE}" \
-	-e "TPCC_DURATION=${TPCC_DURATION}" \
-	-e "TPCC_RAMPUP=${TPCC_RAMPUP}" \
-	-e "TPCC_MIN_VUSERS=${TPCC_MIN_VUSERS}" \
-	-e "TPCC_MAX_VUSERS=${TPCC_MAX_VUSERS}" \
-	-e "TPCC_STEP_VUSERS=${TPCC_STEP_VUSERS}" \
-	-e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
-	-e "results_directory=${RESULTS_DIRECTORY}/report-data" \
-	${SOURCEDIR}/playbook-tpcc-run-rampup.yml
+    -u ${SSH_USER} \
+    --private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
+    -i "${SOURCEDIR}/../inventory.yml" \
+    -e "@$SOURCEDIR/../environment.yml" \
+    -e "@$SOURCEDIR/../vars.yml" \
+    -e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
+    -e "results_directory=${RESULTS_DIRECTORY}/report-data" \
+    "${SOURCEDIR}/playbook-tpcc-run-rampup.yml"
 
 # Copy infrastructure.yml and vars.yml
 cp "../infrastructure.yml" "$RESULTS_DIRECTORY"

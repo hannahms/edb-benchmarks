@@ -1,0 +1,23 @@
+#!/bin/bash -eux
+# Generic
+export BUCKET_NAME="${BUCKET_NAME:=ebac-reports}"
+export BENCHMARK_NAME="${BENCHMARK_NAME:=AWS_TPCC_XDB}"
+
+# Credentials
+export REPO_USERNAME="${REPO_USERNAME:=<secret>}"
+export REPO_PASSWORD="${REPO_PASSWORD:=<secret>}"
+
+# Ansible
+export ANSIBLE_VERBOSITY="${ANSIBLE_VERBOSITY:=0}"
+
+# Terraform
+export SSH_USER="${SSH_USER:=rocky}"
+
+# TPCC
+export TPCC_DURATION="${TPCC_DURATION:=5}"
+export TPCC_WAREHOUSE="${TPCC_WAREHOUSE:=2000}"
+export TPCC_RAMPUP="${TPCC_RAMPUP:=1}"
+export TPCC_LOADER_VUSERS="${TPCC_LOADER_VUSERS:=75}"
+export TPCC_MIN_VUSERS="${TPCC_MIN_VUSERS:=1}"
+export TPCC_MAX_VUSERS="${TPCC_MAX_VUSERS:=14}"
+export TPCC_STEP_VUSERS="${TPCC_STEP_VUSERS:=1}"
