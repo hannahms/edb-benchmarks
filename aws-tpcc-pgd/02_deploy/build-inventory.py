@@ -73,8 +73,8 @@ if __name__ == '__main__':
         vars = vars,
     )
     creds_vardict = dict(
-        edb_repo_username = os.environ.get('EDB_REPO_USERNAME'),
-        edb_repo_password = os.environ.get('EDB_REPO_PASSWORD'),
+        edb_repo_username = os.environ.get('REPO_USERNAME'),
+        edb_repo_password = os.environ.get('REPO_PASSWORD'),
     )
 
     # Build the inventory file
