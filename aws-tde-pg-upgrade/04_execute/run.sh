@@ -12,9 +12,7 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 
 # Run the pg_upgrade benchmark with TDE and without TDE
 ansible-playbook \
-    -u ${SSH_USER} \
-    --private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-    -i "${SOURCEDIR}/../inventory.yml" \
+    -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
     -e "@$SOURCEDIR/../vars.yml" \
     -e "results_directory=${RESULTS_DIRECTORY}/report-data" \
