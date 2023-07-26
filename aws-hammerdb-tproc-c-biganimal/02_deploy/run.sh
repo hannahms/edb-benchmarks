@@ -10,7 +10,8 @@ export ANSIBLE_SSH_PIPELINING=true
 export ANSIBLE_HOST_KEY_CHECKING=false
 
 ansible-playbook \
-	-i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
-	-e "@../vars.yml" \
-	-e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
-	./playbook-tprocc-build-db.yml
+    -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
+    -e "@$SOURCEDIR/../environment.yml" \
+    -e "@$SOURCEDIR/../vars.yml" \
+    -e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
+    ./playbook-deploy.yml
