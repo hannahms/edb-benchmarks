@@ -7,10 +7,10 @@ TERRAFORM_PLAN_FILENAME="terraform.plan"
 RESULTS_DIRECTORY="${SOURCEDIR}/../results"
 
 ansible-playbook "$SOURCEDIR/generate.yml" \
-      -e "template_file=$SOURCEDIR/templates/infrastructure.yml.j2" \
-      -e "dest_file=$SOURCEDIR/../infrastructure.yml" \
-      -e "@$SOURCEDIR/../environment.yml" \
-      -e "@$SOURCEDIR/../vars.yml"
+    -e "template_file=$SOURCEDIR/templates/infrastructure.yml.j2" \
+    -e "dest_file=$SOURCEDIR/../infrastructure.yml" \
+    -e "@$SOURCEDIR/../environment.yml" \
+    -e "@$SOURCEDIR/../vars.yml"
 
 # edb-terraform saves a backup of infrastructure.yml in <project-name>/infrastructure.yml.bak
 #   this also includes the edb-terraform version used to generate the files

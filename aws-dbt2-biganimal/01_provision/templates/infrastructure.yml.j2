@@ -6,7 +6,7 @@
 # Needed variables to generate template
 # - region
 #   - zone0
-# - instance_type
+# - driver_instance_type
 # - pg_instance_type
 #   - project_id (biganimal)
 #   - pg_engine
@@ -44,7 +44,7 @@ aws:
     dbt2_driver:
       region: {{ region }}
       zone: {{ zone0 }}
-      instance_type: {{ instance_type }}
+      instance_type: {{ driver_instance_type }}
       volume:
         type: gp2
         size_gb: 50
