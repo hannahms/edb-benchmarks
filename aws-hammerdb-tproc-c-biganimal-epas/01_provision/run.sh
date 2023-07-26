@@ -10,18 +10,7 @@ ansible-playbook "$SOURCEDIR/generate.yml" \
       -e "template_file=$SOURCEDIR/templates/infrastructure.yml.j2" \
       -e "dest_file=$SOURCEDIR/../infrastructure.yml" \
       -e "@$SOURCEDIR/../environment.yml" \
-      -e "@$SOURCEDIR/../vars.yml" \
-      -e "region=us-east-1" \
-      -e "zone0=us-east-1b" \
-      -e "instance_type=c5.9xlarge" \
-      -e "pg_instance_type=r5.4xlarge" \
-      -e "pg_storage_type=io2" \
-      -e "pg_storage_properties=io2" \
-      -e "pg_storage_size=300" \
-      -e "pg_storage_iops=15000" \
-      -e "pg_engine=epas" \
-      -e "pg_version=14" \
-      -e "pg_password=1234567890zyx" \
+      -e "@$SOURCEDIR/../vars.yml"
 
 # edb-terraform saves a backup of infrastructure.yml in <project-name>/infrastructure.yml.bak
 #   this also includes the edb-terraform version used to generate the files
