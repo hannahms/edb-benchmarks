@@ -15,10 +15,8 @@ ansible-playbook \
 	-u ${SSH_USER} \
 	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
 	-i ../inventory.yml \
-	-e "@../vars.yml" \
-	-e "dbt2_duration=${DBT2_DURATION}" \
-	-e "dbt2_warehouse=${DBT2_WAREHOUSE}" \
-	-e "dbt2_connections=${DBT2_CONNECTIONS}" \
+    -e "@$SOURCEDIR/../environment.yml" \
+    -e "@$SOURCEDIR/../vars.yml" \
 	-e "results_directory=${RESULTS_DIRECTORY}/dbt2-data" \
 	./playbook-dbt2-run.yml
 

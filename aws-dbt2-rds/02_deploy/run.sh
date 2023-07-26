@@ -9,11 +9,13 @@ export ANSIBLE_SSH_ARGS="-o ForwardX11=no -o UserKnownHostsFile=/dev/null"
 export ANSIBLE_SSH_PIPELINING=true
 export ANSIBLE_HOST_KEY_CHECKING=false
 
+python3 ./build-inventory.py ${TERRAFORM_PROJECT_PATH}
+mv inventory.yml ../.
+
 ansible-playbook \
-	-u ${SSH_USER} \
-	--private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-	-i ../inventory.yml \
-	-e "@../vars.yml" \
-	-e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
-	-e "dbt2_warehouse=${DBT2_WAREHOUSE}" \
-	./playbook-dbt2-build-db.yml
+    -u ${SSH_USER} \
+    --private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
+    -i ../inventory.yml \
+    -e "@$SOURCEDIR/../environment.yml" \
+    -e "@$SOURCEDIR/../vars.yml" \
+    ./playbook-deploy.yml
