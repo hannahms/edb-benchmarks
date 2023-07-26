@@ -1,11 +1,18 @@
 # The following template assumes postgres instances within AWS and
 #   have additional attached storage devices based on the pg_instance_type and xdb_instance_type provided
-cluster_name: TPCC-XDB-2-Nodes
 aws:
-  ssh_user: rocky
-  operating_system:
-    name: Rocky-8-ec2-8.6-20220515.0.x86_64
-    owner: 679593333241
+  tags:
+    cluster_name: TPCC-XDB-2-Nodes
+    created_by: edb-benchmarks
+  images:
+    driver:
+      name: Rocky-8-ec2-8.6-20220515.0.x86_64
+      owner: 679593333241
+      ssh_user: rocky
+    postgres:
+      name: {{ pg_image_name }}
+      owner: {{ pg_image_owner }}
+      ssh_user: {{ pg_ssh_user }}
   regions:
     {{ region }}:
       cidr_block: 10.0.0.0/16
@@ -28,7 +35,9 @@ aws:
 
   machines:
     hammerdb:
-      type: hammerdb
+      image_name: driver
+      tags:
+        type: hammerdb
       region: {{ region }}
       az: {{ zone0 }}
       instance_type: {{ driver_instance_type }}
@@ -38,7 +47,9 @@ aws:
         iops: 5000
         encrypted: false
     xdbserver:
-      type: xdbserver
+      image_name: postgres
+      tags:
+        type: xdbserver
       region: {{ region }}
       az: {{ zone0 }}
       instance_type: {{ xdb_instance_type }}
@@ -48,7 +59,9 @@ aws:
         iops: 5000
         encrypted: false
     xdb1:
-      type: postgres
+      image_name: postgres
+      tags:
+        type: postgres
       region: {{ region }}
       az: {{ zone0 }}
       instance_type: {{ pg_instance_type }}
@@ -58,7 +71,9 @@ aws:
         iops: 5000
         encrypted: false
     xdb2:
-      type: postgres
+      image_name: postgres
+      tags:
+        type: postgres
       region: {{ region }}
       az: {{ zone1 }}
       instance_type: {{ pg_instance_type }}
