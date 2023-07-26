@@ -1,4 +1,9 @@
 ---
+# Google Cloud Platform template for use with edb-terraform
+# The following template:
+# - Virtual machines for a postgres instance
+#   - uses attached storage
+#     - does not accept IOPs options
 gcloud:
   tags:
     created_by: edb-benchmarks
@@ -43,5 +48,5 @@ gcloud:
       volume:
         size_gb: {{ pg_storage_size }}
         type: {{ pg_storage_type }}
-        iops: {{ pg_storage_iops }}
+        # iops: {{ pg_storage_iops }}
         encrypted: false
