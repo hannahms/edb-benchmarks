@@ -6,10 +6,10 @@ aws:
     name: Rocky-8-ec2-8.6-20220515.0.x86_64
     owner: 679593333241
   regions:
-    us-east-1:
+    {{ region }}:
       cidr_block: 10.0.0.0/16
       azs:
-        us-east-1b: 10.0.0.0/24
+        {{ zone0 }}: 10.0.0.0/24
       service_ports:
         - port: 22
           protocol: tcp
@@ -21,9 +21,9 @@ aws:
   machines:
     hammerdb:
       type: hammerdb
-      region: us-east-1
-      az: us-east-1b
-      instance_type: c5.9xlarge
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ driver_instance_type }}
       volume:
         type: gp2
         size_gb: 50
@@ -31,9 +31,9 @@ aws:
         encrypted: false
     postgres1:
       type: primary
-      region: us-east-1
-      az: us-east-1b
-      instance_type: m6a.2xlarge
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
       volume:
         type: gp2
         size_gb: 50
@@ -41,10 +41,10 @@ aws:
         encrypted: false
       additional_volumes:
         - mount_point: /pgdata
-          size_gb: 9999
-          type: io2
-          iops: 22000
+          size_gb: {{ pgdata_storage_size }}
+          type: {{ pgdata_storage_type }}
+          iops: {{ pgdata_storage_iops }}
         - mount_point: /pgwal
-          size_gb: 800
-          type: io2
-          iops: 12000
+          size_gb: {{ pgwal_storage_size }}
+          type: {{ pgwal_storage_type }}
+          iops: {{ pgwal_storage_iops }}
