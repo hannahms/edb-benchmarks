@@ -4,14 +4,22 @@ export BUCKET_NAME="${BUCKET_NAME:=ebac-reports}"
 export BENCHMARK_NAME="${BENCHMARK_NAME:=AWS_PSR_3_NODES}"
 
 # Credentials
-export EDB_REPO_USERNAME="${EDB_REPO_USERNAME:=<secret>}"
-export EDB_REPO_PASSWORD="${EDB_REPO_PASSWORD:=<secret>}"
+export REPO_USERNAME="${REPO_USERNAME:=<secret>}"
+export REPO_PASSWORD="${REPO_PASSWORD:=<secret>}"
 
 # Ansible
 export ANSIBLE_VERBOSITY="${ANSIBLE_VERBOSITY:=0}"
 
 # Terraform
 export SSH_USER="${SSH_USER:=rocky}"
+export REGION="${REGION:=us-east-2}"
+export ZONE0="${ZONE0:=us-east-2a}"
+export ZONE1="${ZONE1:=us-east-2b}"
+export ZONE2="${ZONE2:=us-east-2c}"
+# Benchmarker instance
+export DRIVER_INSTANCE_TYPE="${DRIVER_INSTANCE_TYPE:=c5.9xlarge}"
+# Postgres Instance
+export PG_INSTANCE_TYPE="${PG_INSTANCE_TYPE:=c5d.12xlarge}" # Assumes attached storage devices from instance type
 
 # TPCC
 export TPCC_DURATION="${TPCC_DURATION:=20}"
