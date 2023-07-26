@@ -12,17 +12,13 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 
 # Run the ramping up benchmark
 ansible-playbook \
-    -u ${SSH_USER} \
-    --private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-    -i "${SOURCEDIR}/../inventory.yml" \
+    -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
     -e "@$SOURCEDIR/../vars.yml" \
     "${SOURCEDIR}/playbook-setup-sync-repl.yml"
 
 ansible-playbook \
-    -u ${SSH_USER} \
-    --private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-    -i "${SOURCEDIR}/../inventory.yml" \
+    -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
     -e "@$SOURCEDIR/../vars.yml" \
     -e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \

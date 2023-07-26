@@ -14,9 +14,6 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 # Create the TPA directory
 mkdir -p ${SOURCEDIR}/tpa
 
-python3 ${SOURCEDIR}/build-inventory.py ${TERRAFORM_PROJECT_PATH}
-mv ${SOURCEDIR}/inventory.yml ${SOURCEDIR}/../.
-
 # TPA configuration
 TPA_DIR=${SOURCEDIR}/tpa
 mv ${SOURCEDIR}/config.yml ${TPA_DIR}/.
@@ -29,9 +26,7 @@ ${TPA_BIN_DIR}/tpaexec provision ${TPA_DIR}
 
 # Setup file systems
 ansible-playbook \
-    -u ${SSH_USER} \
-    --private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-    -i ${SOURCEDIR}/../inventory.yml \
+    -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
     -e "@$SOURCEDIR/../vars.yml" \
     "${SOURCEDIR}/playbook-setup-fs.yml"
@@ -40,17 +35,13 @@ ansible-playbook \
 ${TPA_BIN_DIR}/tpaexec deploy ${TPA_DIR}
 
 ansible-playbook \
-    -u ${SSH_USER} \
-    --private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-    -i "${SOURCEDIR}/../inventory.yml" \
+    -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
     -e "@$SOURCEDIR/../vars.yml" \
     "${SOURCEDIR}/playbook-deploy.yml"
 
 ansible-playbook \
-    -u ${SSH_USER} \
-    --private-key ${TERRAFORM_PROJECT_PATH}/ssh-id_rsa \
-    -i "${SOURCEDIR}/../inventory.yml" \
+    -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
     -e "@$SOURCEDIR/../vars.yml" \
     "${SOURCEDIR}/playbook-hammerdb-setup.yml"

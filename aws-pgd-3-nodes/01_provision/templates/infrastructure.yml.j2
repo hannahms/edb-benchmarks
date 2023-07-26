@@ -2,10 +2,18 @@
 #   have additional attached storage devices based on the pg_instance_type provided
 cluster_name: TPCC-PGD-3-Nodes
 aws:
-  ssh_user: rocky
-  operating_system:
-    name: Rocky-8-ec2-8.6-20220515.0.x86_64
-    owner: 679593333241
+  tags:
+    cluster_name: TPCC-PGD-3-Nodes
+    created_by: edb-benchmarks
+  images:
+    driver:
+      name: Rocky-8-ec2-8.6-20220515.0.x86_64
+      owner: 679593333241
+      ssh_user: rocky
+    postgres:
+      name: {{ pg_image_name }}
+      owner: {{ pg_image_owner }}
+      ssh_user: {{ pg_ssh_user }}
   regions:
     {{ region }}:
       cidr_block: 10.0.0.0/16
@@ -26,7 +34,9 @@ aws:
 
   machines:
     hammerdb:
-      type: hammerdb
+      image_name: driver
+      tags:
+        type: hammerdb
       region: {{ region }}
       az: {{ zone0 }}
       instance_type: {{ driver_instance_type }}
@@ -36,7 +46,9 @@ aws:
         iops: 5000
         encrypted: false
     bdr1:
-      type: bdr
+      image_name: postgres
+      tags:
+        type: bdr
       region: {{ region }}
       az: {{ zone0 }}
       instance_type: {{ pg_instance_type }}
@@ -46,7 +58,9 @@ aws:
         iops: 5000
         encrypted: false
     bdr2:
-      type: bdr
+      image_name: postgres
+      tags:
+        type: bdr
       region: {{ region }}
       az: {{ zone1 }}
       instance_type: {{ pg_instance_type }}
@@ -56,7 +70,9 @@ aws:
         iops: 5000
         encrypted: false
     bdr3:
-      type: bdr
+      image_name: postgres
+      tags:
+        type: bdr
       region: {{ region }}
       az: {{ zone2 }}
       instance_type: {{ pg_instance_type }}
