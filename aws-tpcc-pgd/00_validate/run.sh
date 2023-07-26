@@ -6,6 +6,10 @@ TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
 TERRAFORM_PLAN_FILENAME="terraform.plan"
 RESULTS_DIRECTORY="${SOURCEDIR}/../results"
 
+ansible-playbook "${SOURCEDIR}/run.yml" \
+    -e "vars_file=${SOURCEDIR}/../environment.yml" \
+    -e "env_file=${SOURCEDIR}/../environment.sh"
+
 if (( $(echo "$TPCC_WAREHOUSE < 2000" | bc -l) )); then
    echo "TPCC_WAREHOUSE: $TPCC_WAREHOUSE";
    echo "HammerDB Warehouses, cannot be lower than 2000!"
