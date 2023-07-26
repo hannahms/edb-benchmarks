@@ -11,8 +11,7 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 
 # Prepare benchmark
 ansible-playbook \
-	-i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
-	-e "@${SOURCEDIR}/../vars.yml" \
-	-e "{\"pg_versions\": ${PG_VERSIONS}}" \
-	-e "pgbench_scale_factor=${PGBENCH_SCALE_FACTOR}" \
-	${SOURCEDIR}/playbook-pgbench-init.yml
+    -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
+    -e "@$SOURCEDIR/../environment.yml" \
+    -e "@$SOURCEDIR/../vars.yml" \
+    "${SOURCEDIR}/playbook-pgbench-init.yml"

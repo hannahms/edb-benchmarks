@@ -6,6 +6,10 @@ TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
 TERRAFORM_PLAN_FILENAME="terraform.plan"
 RESULTS_DIRECTORY="${SOURCEDIR}/../results"
 
+ansible-playbook "${SOURCEDIR}/run.yml" \
+    -e "vars_file=${SOURCEDIR}/../environment.yml" \
+    -e "env_file=${SOURCEDIR}/../environment.sh"
+
 echo "PGBENCH_SCALE_FACTOR: $PGBENCH_SCALE_FACTOR"
 
 if (( $(echo "$PGBENCH_SCALE_FACTOR < 100" | bc -l) )); then
