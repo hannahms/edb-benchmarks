@@ -1,2 +1,4 @@
 ---
 hammerdb_version: 4.6
+db_superuser: admin
+db_password: 12Password!
