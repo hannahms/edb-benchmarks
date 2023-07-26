@@ -5,11 +5,11 @@ aws:
     name: Rocky-8-ec2-8.6-20220515.0.x86_64
     owner: 679593333241
   regions:
-    us-east-1:
+    {{ region }}:
       cidr_block: 10.0.0.0/16
       zones:
-        us-east-1b: 10.0.0.0/24
-        us-east-1c: 10.0.1.0/24
+        {{ zone0 }}: 10.0.0.0/24
+        {{ zone1 }}: 10.0.1.0/24
       service_ports:
         - port: 22
           protocol: tcp
@@ -22,9 +22,9 @@ aws:
     dbt2-driver:
       tags:
         type: dbt2-driver
-      region: us-east-1
-      zone: us-east-1b
-      instance_type: c5.9xlarge
+      region: {{ region }}
+      zone: {{ zone0 }}
+      instance_type: {{ driver_instance_type }}
       volume:
         type: gp2
         size_gb: 50
@@ -35,15 +35,15 @@ aws:
     postgres:
       tags:
         type: dbaas
-      region: us-east-1
+      region: {{ region }}
       zones:
-        - us-east-1b
-        - us-east-1c
+        - {{ zone0 }}
+        - {{ zone1 }}
       count: 1
-      engine: aurora-postgresql
-      engine_version: 14
+      engine: {{ pg_engine }}
+      engine_version: {{ pg_version }}
       dbname: "edb"
-      instance_type: db.r5.8xlarge
-      username: "postgres"
-      password: "12Password!"
-      port: 5432
+      instance_type: {{ pg_instance_type }}
+      username: {{ pg_superuser }}
+      password: {{ pg_password }}
+      port: {{ pg_port }}
