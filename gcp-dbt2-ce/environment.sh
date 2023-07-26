@@ -18,6 +18,8 @@ export PG_STORAGE_SIZE="${PG_STORAGE_SIZE:=4096}"
 # This benchmark assumes GCP and attached storage.
 # GCP virtual machines ignore iops with attached storage
 # export PG_STORAGE_IOPS="${PG_STORAGE_IOPS:=1000}"
+export PG_IMAGE_NAME="${PG_IMAGE_NAME:=rocky-linux-8}"
+export PG_SSH_USER="${PG_SSH_USER:=rocky}"
 
 # DBT2
 export DBT2_CONNECTIONS="${DBT2_CONNECTIONS:=72}"

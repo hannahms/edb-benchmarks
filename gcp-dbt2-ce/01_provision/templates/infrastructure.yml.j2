@@ -9,9 +9,12 @@ gcloud:
     created_by: edb-benchmarks
     cluster_name: gcp-dbt2-vm
   images:
-    rocky:
+    driver:
       name: rocky-linux-8
       ssh_user: rocky
+    postgres:
+      name: {{ pg_image_name }}
+      ssh_user: {{ pg_ssh_user }}
   regions:
     {{ region }}:
       cidr_block: 10.1.0.0/16
@@ -29,7 +32,7 @@ gcloud:
           description: "pgsql"
   machines:
     dbt2-driver:
-      image_name: rocky
+      image_name: driver
       zone_name: main
       tags:
         type: dbt2-driver
@@ -39,7 +42,7 @@ gcloud:
         type: pd-standard
         size_gb: 50
     postgres1:
-      image_name: rocky
+      image_name: postgres
       zone_name: main
       tags:
         type: primary
