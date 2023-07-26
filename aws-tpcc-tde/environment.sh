@@ -11,13 +11,15 @@ export REPO_PASSWORD="${REPO_PASSWORD:=<secret>}"
 export ANSIBLE_VERBOSITY="${ANSIBLE_VERBOSITY:=0}"
 
 # Terraform
-export SSH_USER="${SSH_USER:=rocky}"
 export REGION="${REGION:=us-east-1}"
 export ZONE0="${ZONE0:=us-east-1b}"
 # Benchmarker instance
 export DRIVER_INSTANCE_TYPE="${DRIVER_INSTANCE_TYPE:=c5.9xlarge}"
 # Postgres Instance
 export PG_INSTANCE_TYPE="${PG_INSTANCE_TYPE:=c5d.18xlarge}" # Assumes attached storage devices from instance type
+export PG_IMAGE_NAME="${PG_IMAGE_NAME:=Rocky-8-ec2-8.6-20220515.0.x86_64}"
+export PG_IMAGE_OWNER="${PG_IMAGE_OWNER:=679593333241}"
+export PG_SSH_USER="${PG_SSH_USER:=rocky}"
 
 # TPCC
 export TPCC_DURATION="${TPCC_DURATION:=20}"
