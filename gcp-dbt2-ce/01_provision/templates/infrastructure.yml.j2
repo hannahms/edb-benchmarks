@@ -34,7 +34,7 @@ gcloud:
       tags:
         type: dbt2-driver
       region: {{ region }}
-      instance_type: {{ instance_type }}
+      instance_type: {{ driver_instance_type }}
       volume:
         type: pd-standard
         size_gb: 50
