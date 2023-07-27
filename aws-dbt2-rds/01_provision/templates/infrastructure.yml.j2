@@ -26,10 +26,11 @@ aws:
 
   machines:
     dbt2-driver:
-      type: dbt2-driver
+      tags:
+        type: dbt2-driver
       region: {{ region }}
       zone: {{ zone0 }}
-      instance_type: {{ instance_type }}
+      instance_type: {{ driver_instance_type }}
       volume:
         type: gp2
         size_gb: 50
@@ -39,6 +40,8 @@ aws:
   databases:
     dbt2:
       region: {{ region }}
+      tags:
+        type: dbaas
       engine: {{ pg_engine }}
       engine_version: {{ pg_version }}
       instance_type: {{ pg_instance_type }}
@@ -50,4 +53,4 @@ aws:
         size_gb: {{ pg_storage_size }}
         type: {{ pg_storage_type }}
         iops: {{ pg_storage_iops }}
-        encrypted: true
+        encrypted: false
