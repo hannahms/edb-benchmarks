@@ -68,6 +68,7 @@
         disable_logging: false
 
         # Tempory dirty hack.
+        pg_shared_libraries_list: []
         pg_postgres_conf_params:
           - name: autovacuum_max_workers
             value: "5"
