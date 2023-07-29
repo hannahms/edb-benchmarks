@@ -25,7 +25,8 @@
       when: inventory_hostname not in groups['primary']
 
   roles:
-    - role: setup_repo
+    - setup_repo
+    - setup_touchstone_tools
 
 - hosts: dbt2_driver
   name: Install DBT2 driver
