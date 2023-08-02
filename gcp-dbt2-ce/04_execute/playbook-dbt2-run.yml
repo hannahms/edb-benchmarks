@@ -33,11 +33,11 @@
       ansible.builtin.set_fact:
         fpp: "{{ ((dbt2_connections | int) / ansible_processor_nproc) | int  }}"
 
-    # Target a 45 minute (2,700,000 ms) rampup time, which is the expected time
-    # needed for a 10,000 warehouse database to warm up.
+    # Convert the ramp up time minutes to milliseconds and calculate connection
+    # delay based on the targeted ramp up time.
     - name: Calculate connection delay
       ansible.builtin.set_fact:
-        connection_delay: "{{ (2700000 / ((fpp | int) * \
+        connection_delay: "{{ ((dbt2_rampup | int) * 60000 / ((fpp | int) * \
                           ansible_processor_nproc)) | int }}"
 
     - name: Start dbt2-run-workload
