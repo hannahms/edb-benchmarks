@@ -37,7 +37,7 @@
     # delay based on the targeted ramp up time.
     - name: Calculate connection delay
       ansible.builtin.set_fact:
-        connection_delay: "{{ (dbt2_rampup * 60 * 1000 / ((fpp | int) * \
+        connection_delay: "{{ ((dbt2_rampup | int) * 60000 / ((fpp | int) * \
                           ansible_processor_nproc)) | int }}"
 
     - name: Start dbt2-run-workload
