@@ -48,7 +48,7 @@
           {{ structure.gcloud.machines["postgres1"].instance_type }} |
           {{ structure.gcloud.machines["postgres1"].volume.size_gb }} GB
           {{ structure.gcloud.machines["postgres1"].volume.type }} |
-          {{ structure.gcloud.machines["postgres1"].volume.iops }} IOPS | driver
+          IOPS Not Configurable | driver
           {{ structure.gcloud.machines["dbt2-driver"].instance_type }}"
           --connection-delay={{ connection_delay }}
           --connections-per-processor={{ fpp }}
