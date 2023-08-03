@@ -66,7 +66,6 @@
         PGHOST: "{{ address.stdout_lines[-1] }}"
       become: true
       become_user: "{{ pg_owner }}"
-      register: run_workload
       async: 180000
       poll: 60
       changed_when: false
