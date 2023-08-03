@@ -72,7 +72,6 @@
         PGHOST: "{{ address.stdout_lines[-1] }}"
       become: true
       become_user: "{{ pg_owner }}"
-      register: run_workload
       changed_when: false
       register: result
 
