@@ -1,6 +1,6 @@
 ---
-- hosts: all
-  name: Install repository
+- hosts: dbt2_driver
+  name: Install DBT2 driver
   become: true
   gather_facts: true
 
@@ -16,24 +16,13 @@
       ansible.builtin.user:
         name: "{{ pg_owner }}"
 
-  roles:
-    - role: setup_repo
-
-- hosts: dbt2_driver
-  name: Install DBT2 driver
-  become: true
-  gather_facts: true
-
-  collections:
-    - edb_devops.edb_postgres
-
-  pre_tasks:
     - name: Create {{ pg_owner }} OS user
       ansible.builtin.user:
         name: "{{ pg_owner }}"
 
   roles:
-    - role: setup_dbt2_driver
+    - setup_repo
+    - setup_dbt2_driver
 
   tasks:
     - name: Update /var/lib/pgsql/.pgpass

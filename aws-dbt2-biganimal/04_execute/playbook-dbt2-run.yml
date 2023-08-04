@@ -65,12 +65,9 @@
             pgsql
             /tmp/dbt2-data
       environment:
-        # DRIVER3: "1"
         PGHOST: "{{ address.stdout_lines[-1] }}"
       become: true
       become_user: "{{ pg_owner }}"
-      async: 180000
-      poll: 60
       changed_when: false
       register: result
 
@@ -81,8 +78,7 @@
     # Ignore errors because dbt2-generate-report needs better return code logic.
     - name: Generate DBT2 report
       ansible.builtin.command:
-        cmd: >-
-          dbt2 report --html /tmp/dbt2-data
+        cmd: dbt2 report --html /tmp/dbt2-data
       become: true
       become_user: "{{ pg_owner }}"
       changed_when: false
@@ -104,6 +100,7 @@
 
     - name: Extract data contents to localhost results directory
       ansible.builtin.shell:
-        cmd: |
-          tar xzf "{{ results_directory }}/dbt2-data.tar.gz" -C "{{ results_directory }}"
+        cmd: >-
+          tar xzf "{{ results_directory }}/dbt2-data.tar.gz"
+          -C "{{ results_directory }}"
       delegate_to: localhost
