@@ -58,8 +58,8 @@ aws:
       project:
         id: {{ ba_project_id }}
       region: {{ region }}
-      type: ha
-      node_count: 2
+      type: single
+      node_count: 1
       engine: {{ pg_engine }}
       engine_version: {{ pg_version }}
       instance_type: {{ pg_instance_type }}
