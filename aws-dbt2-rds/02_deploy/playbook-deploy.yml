@@ -27,11 +27,11 @@
     - role: setup_dbt2_driver
 
   tasks:
-    - name: Update /var/lib/pgsql/.pgpass
+    - name: Update .pgpass
       ansible.builtin.lineinfile:
-        path: /var/lib/pgsql/.pgpass
-        regexp: ^\*:\*:\*:postgres.*
-        line: "*:*:*:postgres:{{ pg_password }}"
+        path: "{{ pg_user_home }}/.pgpass"
+        regexp: ^\*:[0-9][0-9][0-9][0-9]:\*:{{ pg_owner }}.*
+        line: "*:*:*:{{ pg_owner }}:{{ pg_password }}"
         owner: "{{ pg_owner }}"
         group: "{{ pg_group }}"
         mode: "0600"
