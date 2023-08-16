@@ -30,7 +30,7 @@
     - name: Update .pgpass
       ansible.builtin.lineinfile:
         path: "{{ pg_user_home }}/.pgpass"
-        regexp: ^\*:[0-9][0-9][0-9][0-9]:\*:{{ pg_owner }}.*
+        regexp: ^\*:[^\n]+:\*:{{ pg_owner }}.*
         line: "*:*:*:{{ pg_owner }}:{{ pg_password }}"
         owner: "{{ pg_owner }}"
         group: "{{ pg_group }}"
