@@ -12,7 +12,7 @@
         aws cloudwatch get-metric-statistics --namespace AWS/RDS
         --metric-name {{ item }}
         --start-time {{  start  }}
-        --region {{ region }}
+        --region {{ infra.servers.databases.postgres.region }}
         --end-time {{ end }}
         --period 60
         --statistics Average
