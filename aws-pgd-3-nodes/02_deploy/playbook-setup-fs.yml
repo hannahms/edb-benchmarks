@@ -1,5 +1,5 @@
 ---
-- hosts: bdr
+- hosts: primary
   name: Create file systems for PGDATA and PGWAL
   become: true
   gather_facts: false

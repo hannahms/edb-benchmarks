@@ -1,8 +1,9 @@
+---
 - hosts: localhost
   name: Generate Terraform infrastructure file
   tasks:
 
-  - name: Generate files
-    ansible.builtin.template:
-      src: "{{ template_file }}"
-      dest: "{{ dest_file }}"
+    - name: Generate files
+      ansible.builtin.template:
+        src: "{{ template_file }}"
+        dest: "{{ dest_file }}"

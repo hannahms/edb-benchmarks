@@ -8,149 +8,134 @@
     - edb_devops.edb_postgres
 
   tasks:
-    - name: Make {{ hammerdb_data_path }} exists
-      ansible.builtin.file:
-        path: "{{ hammerdb_data_path }}"
-        state: directory
-      when: "'hammerdb' in group_names"
-
-    - name: Generate HammerDB loader script
-      ansible.builtin.template:
-        src: loader.tcl.j2
-        dest: "{{ hammerdb_data_path }}/loader.tcl"
-      when: "'hammerdb' in group_names"
-
     - name: Remove BDR nodes
       community.postgresql.postgresql_query:
         query: >-
           SELECT bdr.part_node(node_name := '{{ item }}')
-        db: "{{ bdr_dbname }}"
+        db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
         port: 5444
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
-      when: inventory_hostname == 'bdr1'
+      when: inventory_hostname == 'pgd1'
       loop:
-        - bdr2
-        - bdr3
+        - pgd2
+        - pgd3
 
     - name: Cleanup replication origin
       community.postgresql.postgresql_query:
         query: >-
           SELECT pg_replication_origin_drop('bdr_local_only_origin')
-        db: "{{ bdr_dbname }}"
+        db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
         port: 5444
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
-      when: inventory_hostname == 'bdr1'
+      when: inventory_hostname == 'pgd1'
 
     - name: DROP bdr extension
       community.postgresql.postgresql_query:
         query: >-
           DROP EXTENSION bdr CASCADE
-        db: "{{ bdr_dbname }}"
+        db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
         port: 5444
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
-      when: inventory_hostname == 'bdr1'
+      when: inventory_hostname == 'pgd1'
 
-    - name: "DROP {{ bdr_dbname }} database"
+    - name: "DROP {{ pgd_cluster_database }} database"
       community.postgresql.postgresql_db:
         maintenance_db: postgres
         state: absent
-        name: "{{ bdr_dbname }}"
+        name: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
         port: 5444
         login_unix_socket: "{{ pg_login_unix_socket }}"
         force: true
       become: true
       become_user: "{{ pg_owner }}"
-      when: inventory_hostname == 'bdr1'
+      when: inventory_hostname == 'pgd1'
 
-    - name: Restart Postgres on bdr1
+    - name: Restart Postgres on pgd1
       ansible.builtin.systemd:
-        name: postgres
+        name: "edb-as-{{ pg_version }}"
         state: restarted
       become: true
-      when: inventory_hostname == 'bdr1'
+      when: inventory_hostname == 'pgd1'
 
-    - name: Stop Postgres on bdr2 and bdr3
+    - name: Stop Postgres on pgd2 and pgd3 [1]
       ansible.builtin.systemd:
-        name: postgres
+        name: "edb-as-{{ pg_version }}"
         state: stopped
       become: true
-      when: inventory_hostname in ['bdr2', 'bdr3']
+      when: inventory_hostname in ['pgd2', 'pgd3']
 
     - name: Wait for port 5444
       ansible.builtin.wait_for:
         host: 0.0.0.0
         port: 5444
         state: started
-      when: inventory_hostname == 'bdr1'
+      when: inventory_hostname == 'pgd1'
 
     - name: Populate the TPCC database
       ansible.builtin.command:
-        cmd: "./hammerdbcli tcl auto {{ hammerdb_data_path }}/loader.tcl"
-        chdir: "{{ hammerdb_install_path }}"
-      async: 180000
-      poll: 60
+        cmd: "./hammerdbcli tcl auto /home/{{ hammerdb_user }}/loader.tcl"
+        chdir: "/home/{{ hammerdb_user }}/HammerDB-{{ hammerdb_version }}"
       changed_when: false
       when: "'hammerdb' in group_names"
+      become_user: "{{ hammerdb_user }}"
 
-    - name: Issuing CHECKPOINT on bdr1
+    - name: Issuing CHECKPOINT on pgd1
       community.postgresql.postgresql_query:
         autocommit: true
         query: >-
           CHECKPOINT
-        db: "{{ bdr_dbname }}"
+        db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
         port: 5444
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become_user: "{{ pg_owner }}"
-      when: inventory_hostname == 'bdr1'
-      async: 180000
-      poll: 60
+      when: inventory_hostname == 'pgd1'
 
     - name: Create bdr extension
       community.postgresql.postgresql_ext:
         name: bdr
         state: present
-        db: "{{ bdr_dbname }}"
+        db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
         port: 5444
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
-      when: inventory_hostname == 'bdr1'
+      when: inventory_hostname == 'pgd1'
 
-    - name: Create BDR node on bdr1
+    - name: Create BDR node on pgd1
       community.postgresql.postgresql_query:
         query: >-
-          SELECT bdr.create_node('bdr1', 'host=bdr1 dbname={{ bdr_dbname }} port=5444 user={{ pg_user }}');
-        db: "{{ bdr_dbname }}"
+          SELECT bdr.create_node('pgd1', 'host=pgd1 dbname={{ pgd_cluster_database }} port=5444 user={{ pg_user }}');
+        db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
         port: 5444
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
-      when: inventory_hostname == 'bdr1'
+      when: inventory_hostname == 'pgd1'
 
-    - name: Create BDR group on bdr1
+    - name: Create BDR group on pgd1
       community.postgresql.postgresql_query:
         query: >-
-          SELECT bdr.create_node_group('bdrdb_group');
-        db: "{{ bdr_dbname }}"
+          SELECT bdr.create_node_group('pgddb_group');
+        db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
         port: 5444
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
-      when: inventory_hostname == 'bdr1'
+      when: inventory_hostname == 'pgd1'
 
     - name: Cleaning up Postgres file systems
       ansible.builtin.shell: |
@@ -161,25 +146,25 @@
         # Required by bdr_init_physical
         chown enterprisedb.enterprisedb {{ pg_data | dirname }}
       become: true
-      when: inventory_hostname in ['bdr2', 'bdr3']
+      when: inventory_hostname in ['pgd2', 'pgd3']
 
-    - name: Building bdr2 and bdr3 with bdr_init_physical
+    - name: Building pgd2 and pgd3 with bdr_init_physical
       ansible.builtin.shell: |
         /usr/edb/as{{ pg_version }}/bin/bdr_init_physical -D {{ pg_data }} \
                 -l /tmp/bdr_init_physical.log \
                 -n {{ inventory_hostname }} \
-                --node-group-name bdrdb_group \
-                -d 'host=bdr1 port=5444 dbname={{ bdr_dbname }}' \
-                --local-dsn 'host={{ inventory_hostname }} port=5444 dbname={{ bdr_dbname }}'
-      when: inventory_hostname in ['bdr2', 'bdr3']
-      become_user: "{{ pg_user }}"
-      async: 180000
-      poll: 60
+                --node-group-name pgddb_group \
+                -d 'host=pgd1 port=5444 dbname={{ pgd_cluster_database }} user={{ pgd_replication_user }}' \
+                --local-dsn 'host={{ inventory_hostname }} port=5444 dbname={{ pgd_cluster_database }} user={{ pg_user }}'
+      when: inventory_hostname in ['pgd2', 'pgd3']
+      become_user: "{{ pg_owner }}"
 
-    - name: Stop Postgres on bdr2 and bdr3
+    # Need to use pg_ctl here instead of operating system service because
+    # bdr_init_physical starts the database.
+    - name: Stop Postgres on pgd2 and pgd3 [2]
       ansible.builtin.shell: |
         /usr/edb/as{{ pg_version }}/bin/pg_ctl -D {{ pg_data }} stop
-      when: inventory_hostname in ['bdr2', 'bdr3']
+      when: inventory_hostname in ['pgd2', 'pgd3']
       become_user: "{{ pg_owner }}"
 
     - name: Updating PGWAL location
@@ -189,11 +174,11 @@
         rm -rf {{ pg_data }}/pg_wal/
         ln -s {{ pg_wal }} {{ pg_data }}/pg_wal
       become: true
-      when: inventory_hostname in ['bdr2', 'bdr3']
+      when: inventory_hostname in ['pgd2', 'pgd3']
 
-    - name: Starting Postgres on bdr2 and bdr3
+    - name: Starting Postgres on pgd2 and pgd3
       ansible.builtin.systemd:
-        name: postgres
+        name: "edb-as-{{ pg_version }}"
         state: started
       become: true
-      when: inventory_hostname in ['bdr2', 'bdr3']
+      when: inventory_hostname in ['pgd2', 'pgd3']

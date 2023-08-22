@@ -7,12 +7,12 @@ proc wait_to_complete {} {
         if {!$complete} {after 5000 wait_to_complete} else { exit }
 }
 dbset db pg
-diset connection pg_host {{ hostvars['bdr1'].private_ip }}
+diset connection pg_host {{ infra.servers.machines.pgd1.private_ip }}
 diset connection pg_port 5444
 diset tpcc pg_count_ware {{ tpcc_warehouse }}
 diset tpcc pg_num_vu {{ tpcc_loader_vusers }}
 diset tpcc pg_raiseerror true
 diset tpcc pg_superuser {{ pg_user }}
-diset tpcc pg_dbase {{ bdr_dbname }}
+diset tpcc pg_dbase {{ pgd_cluster_database }}
 buildschema
 wait_to_complete

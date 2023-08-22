@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/bin/bash -eux
 
 VUSER_MIN=${TPCC_MIN_VUSERS:=5}
 VUSER_MAX=${TPCC_MAX_VUSERS:=100}
@@ -7,7 +7,7 @@ VUSER_STEP=${TPCC_STEP_VUSERS:=5}
 DURATION=${TPCC_DURATION:=10}
 RAMPUP=${TPCC_RAMPUP:=1}
 WAREHOUSE=${TPCC_WAREHOUSE:=2000}
-HAMMERDB_BIN_PATH=/opt/HammerDB-4.6
+HAMMERDB_BIN_PATH=${HAMMERDB_BIN_PATH}
 PG_SUPERUSER="${PG_SUPERUSER:=enterprisedb}"
 PG_PORT=${PG_PORT:=5444}
 
@@ -19,8 +19,8 @@ cd $HAMMERDB_BIN_PATH
 echo "vuser,nopm"
 echo "0,0"
 
-psql -At -h ${PG_HOST} -U ${PG_SUPERUSER} -p ${PG_PORT} "dbname=${PG_DBNAME} sslmode=disable" -c "SELECT bdr.run_on_all_nodes('CHECKPOINT');" > /dev/null 2>&1
-psql -At -h ${PG_HOST} -U ${PG_SUPERUSER} -p ${PG_PORT} "dbname=${PG_DBNAME} sslmode=disable" -c "SELECT bdr.run_on_all_nodes('VACUUM ANALYZE');" > /dev/null 2>&1
+psql -At -h ${PG_HOST} -U ${PG_SUPERUSER} -p ${PG_PORT} -d ${PG_DBNAME} -c "SELECT bdr.run_on_all_nodes('CHECKPOINT');" > /dev/null 2>&1
+psql -At -h ${PG_HOST} -U ${PG_SUPERUSER} -p ${PG_PORT} -d ${PG_DBNAME} -c "SELECT bdr.run_on_all_nodes('VACUUM ANALYZE');" > /dev/null 2>&1
 
 for ((c=${VUSER_MIN}; c<=${VUSER_MAX}; c=c+${VUSER_STEP}))
 do
@@ -74,6 +74,5 @@ EOF
     nopm=$(./hammerdbcli tcl auto /tmp/runner-${c}-vuser.tcl | grep "System achieved" | sed -E "s/^.*achieved ([0-9\.]+).* NOPM.*$/\1/")
 
     echo "${c},${nopm}"
-    rm -f /tmp/runner-${c}-vuser.tcl
     sleep 5
 done

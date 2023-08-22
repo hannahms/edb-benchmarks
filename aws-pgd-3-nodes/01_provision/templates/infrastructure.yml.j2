@@ -41,43 +41,46 @@ aws:
       az: {{ zone0 }}
       instance_type: {{ driver_instance_type }}
       volume:
-        type: gp2
-        size_gb: 50
-        iops: 5000
+        type: gp3
+        size_gb: 1000
+        iops: 3000
         encrypted: false
-    bdr1:
+    pgd1:
       image_name: postgres
       tags:
-        type: bdr
+        type: pgd
+        index: 0
       region: {{ region }}
       az: {{ zone0 }}
       instance_type: {{ pg_instance_type }}
       volume:
-        type: gp2
-        size_gb: 50
-        iops: 5000
+        type: gp3
+        size_gb: 1000
+        iops: 3000
         encrypted: false
-    bdr2:
+    pgd2:
       image_name: postgres
       tags:
-        type: bdr
+        type: pgd
+        index: 1
       region: {{ region }}
       az: {{ zone1 }}
       instance_type: {{ pg_instance_type }}
       volume:
-        type: gp2
-        size_gb: 50
-        iops: 5000
+        type: gp3
+        size_gb: 1000
+        iops: 3000
         encrypted: false
-    bdr3:
+    pgd3:
       image_name: postgres
       tags:
-        type: bdr
+        type: pgd
+        index: 2
       region: {{ region }}
       az: {{ zone2 }}
       instance_type: {{ pg_instance_type }}
       volume:
-        type: gp2
-        size_gb: 50
-        iops: 5000
+        type: gp3
+        size_gb: 1000
+        iops: 3000
         encrypted: false
