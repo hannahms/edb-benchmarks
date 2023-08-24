@@ -1,5 +1,5 @@
 ---
-- hosts: dbt2_database
+- hosts: primary
   name: Reset PostgreSQL to defaults
   gather_facts: true
 
@@ -56,6 +56,18 @@
         state: restarted
       become: true
 
+    - name: Set DBT-2 results directory
+      ansible.builtin.set_fact:
+        dbt2resultsname: "tuner-off"
+
+    - name: Make sure DBT-2 target data dir does not exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      become: true
+      loop:
+        - /tmp/dbt2-data/{{ dbt2resultsname }}
+
 - hosts: dbt2_driver
   name: Run DBT-2 with PostgreSQL defaults
   gather_facts: true
@@ -75,7 +87,7 @@
 
     - name: Load infrastructure.yml
       ansible.builtin.include_vars:
-        file: "../infrastructure.yml"
+        file: "{{ terraform_project_path }}/infrastructure.yml.bak"
         name: structure
 
     - name: Make sure DBT-2 target data dir and archive do not exist
@@ -85,46 +97,46 @@
       become: true
       loop:
         - /tmp/dbt2-data/{{ dbt2resultsname }}
+        - /tmp/dbt2-data.tar.gz
 
+    # Use dbt2_connections as a limit to the number of connections that may be
+    # opened, which in units matching the number of processors on the driver
+    # system.  This is a bit of a dirty hack that could be clarified.
     - name: Calculate drivers per processor
       ansible.builtin.set_fact:
         fpp: "{{ ((dbt2_connections | int) / ansible_processor_nproc) | int  }}"
 
-    # Use dbt2_connections as a limit to the number of connections that may be
-    # opened, which are opened in units matching the number of processors on
-    # the driver system.  Also target a 15 minute (900,000 ms) rampup time,
-    # which is the expected time needed for a 3,000 warehouse database to warm
-    # up.
-    - name: Start dbt2-run-workload
+    # Convert the ramp up time minutes to milliseconds and calculate connection
+    # delay based on the targeted ramp up time.
+    - name: Calculate connection delay
+      ansible.builtin.set_fact:
+        connection_delay: "{{ ((dbt2_rampup | int) * 60000 / ((fpp | int) * \
+                          ansible_processor_nproc)) | int }}"
+
+    - name: Start dbt2 workload (tuner-off)
       ansible.builtin.command:
         cmd: >-
-          dbt2-run-workload
-            -A
-            -a pgsql
-            -d {{ dbt2_duration }}
-            -D {{ dbname }}
-            -F {{ fpp }}
-            -H {{ infra.servers.machines["dbt2-database"].private_ip }}
-            -n
-            -o {{ results_directory }}/{{ dbt2resultsname }}
-            -s {{ (900000 / ((fpp | int) * ansible_processor_nproc)) | int }}
-            -t 1
-            -u
-            -w {{ dbt2_warehouse }}
-            -z "EDB Postgres Tuner on PostgreSQL (defaults)
-                {{ structure.aws.machines["dbt2-database"].instance_type }} |
-                {{ structure.aws.machines["dbt2-database"].volume.size_gb }}
-                GB {{ structure.aws.machines["dbt2-database"].volume.type }}
-                | {{ structure.aws.machines["dbt2-database"].volume.iops }}
+          dbt2 run
+            --comment="EDB Postgres Tuner on PostgreSQL (defaults)
+                {{ structure.aws.machines.primary.instance_type }} |
+                {{ structure.aws.machines.primary.volume.size_gb }}
+                GB {{ structure.aws.machines.primary.volume.type }}
+                | {{ structure.aws.machines.primary.volume.iops }}
                 IOPS | driver
                 {{ structure.aws.machines["dbt2-driver"].instance_type }}"
+            --connection-delay={{ connection_delay }}
+            --connections-per-processor={{ fpp }}
+            --db-host={{ infra.servers.machines.primary.private_ip }}
+            --districts 1
+            --duration={{ dbt2_duration }}
+            --stats
+            --warehouses={{ dbt2_warehouse }}
+            pgsql
+            /tmp/dbt2-data/{{ dbt2resultsname }}
       environment:
-        DRIVER3: "1"
-        PGHOST: "{{ infra.servers.machines[\"dbt2-database\"].private_ip }}"
+        PGHOST: "{{ infra.servers.machines.primary.private_ip }}"
       become: true
       become_user: "{{ pg_owner }}"
-      async: 180000
-      poll: 60
       changed_when: false
       register: result
 
@@ -132,10 +144,10 @@
       ansible.builtin.debug:
         var: result
 
-    # Ignore errors because dbt2-generate-report needs better return code logic.
+    # Ignore errors because dbt2 report needs better return code logic.
     - name: Generate DBT-2 report
       ansible.builtin.command:
-        cmd: dbt2-generate-report -i /tmp/dbt2-data/{{ dbt2resultsname }}
+        cmd: dbt2 report --html /tmp/dbt2-data/{{ dbt2resultsname }}
       become: true
       become_user: "{{ pg_owner }}"
       changed_when: false
@@ -145,7 +157,7 @@
       ansible.builtin.debug:
         var: result
 
-- hosts: dbt2_database
+- hosts: primary
   name: Enable EDB Postgres Tuner for measurement run
   gather_facts: true
 
@@ -170,6 +182,18 @@
         daemon_reload: true
         state: restarted
       become: true
+
+    - name: Set DBT-2 results directory
+      ansible.builtin.set_fact:
+        dbt2resultsname: "tuner-measure"
+
+    - name: Make sure DBT-2 target data dir does not exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      become: true
+      loop:
+        - /tmp/dbt2-data/{{ dbt2resultsname }}
 
 - hosts: dbt2_driver
   name: Run DBT-2 with EDB Postgres Tuner enabled
@@ -210,36 +234,30 @@
     # the driver system.  Also target a 15 minute (900,000 ms) rampup time,
     # which is the expected time needed for a 3,000 warehouse database to warm
     # up.
-    - name: Start dbt2-run-workload
+    - name: Start dbt2 workload (tuner-measurement)
       ansible.builtin.command:
         cmd: >-
-          dbt2-run-workload
-            -A
-            -a pgsql
-            -d {{ dbt2_duration }}
-            -D {{ dbname }}
-            -F {{ fpp }}
-            -H {{ infra.servers.machines["dbt2-database"].private_ip }}
-            -n
-            -o /tmp/dbt2-data/{{ dbt2resultsname }}
-            -s {{ (900000 / ((fpp | int) * ansible_processor_nproc)) | int }}
-            -t 1
-            -u
-            -w {{ dbt2_warehouse }}
-            -z "EDB Postgres Tuner on PostgreSQL (measuring...)
-                {{ structure.aws.machines["dbt2-database"].instance_type }} |
-                {{ structure.aws.machines["dbt2-database"].volume.size_gb }}
-                GB {{ structure.aws.machines["dbt2-database"].volume.type }}
-                | {{ structure.aws.machines["dbt2-database"].volume.iops }}
+          dbt2 run
+            --comment="EDB Postgres Tuner on PostgreSQL (measuring...)
+                {{ structure.aws.machines.primary.instance_type }} |
+                {{ structure.aws.machines.primary.volume.size_gb }}
+                GB {{ structure.aws.machines.primary.volume.type }}
+                | {{ structure.aws.machines.primary.volume.iops }}
                 IOPS | driver
                 {{ structure.aws.machines["dbt2-driver"].instance_type }}"
+            --connection-delay={{ connection_delay }}
+            --connections-per-processor={{ fpp }}
+            --db-host={{ infra.servers.machines.primary.private_ip }}
+            --districts 1
+            --duration={{ dbt2_duration }}
+            --stats
+            --warehouses={{ dbt2_warehouse }}
+            pgsql
+            /tmp/dbt2-data/{{ dbt2resultsname }}
       environment:
-        DRIVER3: "1"
-        PGHOST: "{{ infra.servers.machines[\"dbt2-database\"].private_ip }}"
+        PGHOST: "{{ infra.servers.machines.primary.private_ip }}"
       become: true
       become_user: "{{ pg_owner }}"
-      async: 180000
-      poll: 60
       changed_when: false
       register: result
 
@@ -247,14 +265,12 @@
       ansible.builtin.debug:
         var: result
 
-    # Ignore errors because dbt2-generate-report needs better return code logic.
+    # Ignore errors because dbt2 report needs better return code logic.
     - name: Generate DBT-2 report
       ansible.builtin.command:
-        cmd: dbt2-generate-report -i /tmp/dbt2-data/{{ dbt2resultsname }}
+        cmd: dbt2 report --html /tmp/dbt2-data/{{ dbt2resultsname }}
       become: true
       become_user: "{{ pg_owner }}"
-      async: 180000
-      poll: 60
       changed_when: false
       register: result
 
@@ -262,7 +278,7 @@
       ansible.builtin.debug:
         var: result
 
-- hosts: dbt2_database
+- hosts: primary
   name: Applying any further EDB Postgres Tuner requiring restart
   gather_facts: true
 
@@ -281,6 +297,18 @@
         daemon_reload: true
         state: restarted
       become: true
+
+    - name: Set DBT-2 results directory
+      ansible.builtin.set_fact:
+        dbt2resultsname: "tuner-final"
+
+    - name: Make sure DBT-2 target data dir does not exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      become: true
+      loop:
+        - /tmp/dbt2-data/{{ dbt2resultsname }}
 
 - hosts: dbt2_driver
   name: Run DBT-2 with all EDB Postgres Tuner settings applied
@@ -311,7 +339,6 @@
       become: true
       loop:
         - /tmp/dbt2-data/{{ dbt2resultsname }}
-        - /tmp/dbt2-data.tar.gz
 
     - name: Calculate drivers per processor
       ansible.builtin.set_fact:
@@ -322,36 +349,30 @@
     # the driver system.  Also target a 15 minute (900,000 ms) rampup time,
     # which is the expected time needed for a 3,000 warehouse database to warm
     # up.
-    - name: Start dbt2-run-workload
+    - name: Start dbt2 workload (tuner-final)
       ansible.builtin.command:
         cmd: >-
-          dbt2-run-workload
-            -A
-            -a pgsql
-            -d {{ dbt2_duration }}
-            -D {{ dbname }}
-            -F {{ fpp }}
-            -H {{ infra.servers.machines["dbt2-database"].private_ip }}
-            -n
-            -o /tmp/dbt2-data/{{ dbt2resultsname }}
-            -s {{ (900000 / ((fpp | int) * ansible_processor_nproc)) | int }}
-            -t 1
-            -u
-            -w {{ dbt2_warehouse }}
-            -z "EDB Postgres Tuner on PostgreSQL (final)
-                {{ structure.aws.machines["dbt2-database"].instance_type }} |
-                {{ structure.aws.machines["dbt2-database"].volume.size_gb }}
-                GB {{ structure.aws.machines["dbt2-database"].volume.type }}
-                | {{ structure.aws.machines["dbt2-database"].volume.iops }}
+          dbt2 run
+            --comment="EDB Postgres Tuner on PostgreSQL (final)
+                {{ structure.aws.machines.primary.instance_type }} |
+                {{ structure.aws.machines.primary.volume.size_gb }}
+                GB {{ structure.aws.machines.primary.volume.type }}
+                | {{ structure.aws.machines.primary.volume.iops }}
                 IOPS | driver
                 {{ structure.aws.machines["dbt2-driver"].instance_type }}"
+            --connection-delay={{ connection_delay }}
+            --connections-per-processor={{ fpp }}
+            --db-host={{ infra.servers.machines.primary.private_ip }}
+            --districts 1
+            --duration={{ dbt2_duration }}
+            --stats
+            --warehouses={{ dbt2_warehouse }}
+            pgsql
+            /tmp/dbt2-data/{{ dbt2resultsname }}
       environment:
-        DRIVER3: "1"
-        PGHOST: "{{ infra.servers.machines[\"dbt2-database\"].private_ip }}"
+        PGHOST: "{{ infra.servers.machines.primary.private_ip }}"
       become: true
       become_user: "{{ pg_owner }}"
-      async: 180000
-      poll: 60
       changed_when: false
       register: result
 
@@ -359,14 +380,12 @@
       ansible.builtin.debug:
         var: result
 
-    # Ignore errors because dbt2-generate-report needs better return code logic.
+    # Ignore errors because dbt2 report needs better return code logic.
     - name: Generate DBT-2 report
       ansible.builtin.command:
-        cmd: dbt2-generate-report -i /tmp/dbt2-data/{{ dbt2resultsname }}
+        cmd: dbt2 report --html /tmp/dbt2-data/{{ dbt2resultsname }}
       become: true
       become_user: "{{ pg_owner }}"
-      async: 180000
-      poll: 60
       changed_when: false
       register: result
 

@@ -33,7 +33,7 @@
   roles:
     - role: setup_dbt2_driver
 
-- hosts: dbt2_database
+- hosts: primary
   name: Install PostgreSQL
   become: true
   gather_facts: true

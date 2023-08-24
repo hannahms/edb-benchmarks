@@ -17,8 +17,4 @@ ansible-playbook \
     -e "@$SOURCEDIR/../vars.yml" \
     -e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
     -e "results_directory=${RESULTS_DIRECTORY}/dbt2-data" \
-    ./playbook-dbt2-run.yml
-
-# Copy infrastructure.yml and vars.yml
-cp "${SOURCEDIR}/../infrastructure.yml" "${SOURCEDIR}/dbt2-data/"
-cp "${SOURCEDIR}/../vars.yml" "${RESULTS_DIRECTORY}/dbt2-data/"
+    "${SOURCEDIR}/playbook-dbt2-run.yml"

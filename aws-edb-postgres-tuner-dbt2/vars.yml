@@ -9,3 +9,4 @@ pg_group: postgres
 pg_superuser: postgres
 pg_password: "12Password!"
 pg_version: 14
+install_edb_postgres_tuner: true

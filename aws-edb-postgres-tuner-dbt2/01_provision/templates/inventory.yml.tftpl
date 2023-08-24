@@ -1,7 +1,7 @@
 ---
 all:
   children:
-    dbt2_database:
+    primary:
       hosts:
 %{ for name, values in servers.machines ~}
 %{   if values.tags.type == "dbt2-database" ~}
