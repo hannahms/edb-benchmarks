@@ -1,0 +1,58 @@
+---
+gcloud:
+  tags:
+    created_by: edb-terraform
+    cluster_name: gcp-dbt2-biganimal
+  images:
+    driver:
+      name: rocky-linux-8
+      ssh_user: rocky
+    postgres:
+      name: {{ pg_image_name }}
+      ssh_user: {{ pg_ssh_user }}
+  regions:
+    {{ region }}:
+      cidr_block: 10.1.0.0/16
+      zones:
+        main:
+          zone: {{ zone0 }}
+          cidr: 10.1.20.0/24
+      service_ports:
+        - port: 22
+          protocol: tcp
+          description: "SSH"
+      region_ports:
+        - port: 5432
+          protocol: tcp
+          description: "pgsql"
+  machines:
+    dbt2-driver:
+      image_name: driver
+      zone_name: main
+      tags:
+        type: dbt2-driver
+      region: {{ region }}
+      instance_type: {{ driver_instance_type }}
+      volume:
+        type: pd-standard
+        size_gb: 50
+
+  biganimal:
+    dbt2:
+      project:
+        id: {{ ba_project_id }}
+      cloud_account: true
+      region: {{ region }}
+      type: single
+      node_count: 1
+      engine: {{ pg_engine }}
+      engine_version: {{ pg_version }}
+      password: {{ pg_password }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: {{ pg_storage_type }}
+        size_gb: {{ pg_storage_size }}
+        iops: {{ pg_storage_iops }}
+        properties: {{ pg_storage_properties }}
+      tags:
+        dbname: dbt2

@@ -1,0 +1,36 @@
+---
+- hosts: dbt2_driver
+  name: Install DBT2 driver
+  become: true
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  pre_tasks:
+    - name: Initialize the user defined variables
+      set_fact:
+        enable_edb_repo: false
+
+    - name: Create {{ pg_owner }} OS user
+      ansible.builtin.user:
+        name: "{{ pg_owner }}"
+
+    - name: Create {{ pg_owner }} OS user
+      ansible.builtin.user:
+        name: "{{ pg_owner }}"
+
+  roles:
+    - setup_repo
+    - setup_dbt2_driver
+
+  tasks:
+    - name: Update /var/lib/pgsql/.pgpass
+      ansible.builtin.lineinfile:
+        path: "{{ pg_user_home }}/.pgpass"
+        regexp: ^\*:\*:\*:{{ pg_owner }}.*
+        line: "*:*:*:{{ pg_owner }}:{{ pg_password }}"
+        owner: "{{ pg_owner }}"
+        group: "{{ pg_group }}"
+        mode: "0600"
+      become: true

@@ -1,0 +1,12 @@
+---
+pg_database: "postgres"
+pg_port: 5432
+pg_type: "PG"
+pg_group: "edb_admin"
+pg_owner: "edb_admin"
+pg_password: "1234567890zyxu"
+pg_superuser: "postgres"
+pg_user_home: "/home/edb_admin"
+pg_engine: "postgres"
+pg_version: 14
+pg_storage_properties: "pd-ssd"
