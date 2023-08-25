@@ -26,7 +26,6 @@
 
   roles:
     - setup_repo
-    - setup_touchstone_tools
 
 - hosts: dbt2_driver
   name: Install DBT2 driver
@@ -117,3 +116,4 @@
     - init_dbserver
     - manage_dbserver
     - setup_dbt2
+    - setup_touchstone_tools

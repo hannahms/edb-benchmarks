@@ -152,3 +152,4 @@
     - init_dbserver
     - manage_dbserver
     - setup_dbt2
+    - setup_touchstone_tools
