@@ -58,6 +58,17 @@ aws:
         size_gb: 1000
         iops: 3000
         encrypted: false
+      additional_volumes:
+        - mount_point: /pgdata
+          size_gb: {{ pgdata_storage_size }}
+          type: {{ pgdata_storage_type }}
+          iops: {{ pgdata_storage_iops }}
+          encrypted: false
+        - mount_point: /pgwal
+          size_gb: {{ pgwal_storage_size }}
+          type: {{ pgwal_storage_type }}
+          iops: {{ pgwal_storage_iops }}
+          encrypted: false
     pgd2:
       image_name: postgres
       tags:
@@ -71,6 +82,17 @@ aws:
         size_gb: 1000
         iops: 3000
         encrypted: false
+      additional_volumes:
+        - mount_point: /pgdata
+          size_gb: {{ pgdata_storage_size }}
+          type: {{ pgdata_storage_type }}
+          iops: {{ pgdata_storage_iops }}
+          encrypted: false
+        - mount_point: /pgwal
+          size_gb: {{ pgwal_storage_size }}
+          type: {{ pgwal_storage_type }}
+          iops: {{ pgwal_storage_iops }}
+          encrypted: false
     pgd3:
       image_name: postgres
       tags:
@@ -84,3 +106,14 @@ aws:
         size_gb: 1000
         iops: 3000
         encrypted: false
+      additional_volumes:
+        - mount_point: /pgdata
+          size_gb: {{ pgdata_storage_size }}
+          type: {{ pgdata_storage_type }}
+          iops: {{ pgdata_storage_iops }}
+          encrypted: false
+        - mount_point: /pgwal
+          size_gb: {{ pgwal_storage_size }}
+          type: {{ pgwal_storage_type }}
+          iops: {{ pgwal_storage_iops }}
+          encrypted: false

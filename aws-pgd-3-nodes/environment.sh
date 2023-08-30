@@ -17,10 +17,18 @@ export ZONE2="${ZONE2:=us-east-2c}"
 # Benchmarker instance
 export DRIVER_INSTANCE_TYPE="${DRIVER_INSTANCE_TYPE:=c5.9xlarge}"
 # Postgres Instance
-export PG_INSTANCE_TYPE="${PG_INSTANCE_TYPE:=c5d.18xlarge}" # Assumes attached storage devices from instance type
+export PG_INSTANCE_TYPE="${PG_INSTANCE_TYPE:=r5b.2xlarge}"
 export PG_IMAGE_NAME="${PG_IMAGE_NAME:=Rocky-8-ec2-8.6-20220515.0.x86_64}"
 export PG_IMAGE_OWNER="${PG_IMAGE_OWNER:=679593333241}"
 export PG_SSH_USER="${PG_SSH_USER:=rocky}"
+
+export PGDATA_STORAGE_TYPE="${STORAGE_TYPE:=io2}"
+export PGDATA_STORAGE_SIZE="${STORAGE_SIZE:=4096}"
+export PGDATA_STORAGE_IOPS="${STORAGE_IOPS:=21667}"
+
+export PGWAL_STORAGE_TYPE="${STORAGE_TYPE:=io2}"
+export PGWAL_STORAGE_SIZE="${STORAGE_SIZE:=1024}"
+export PGWAL_STORAGE_IOPS="${STORAGE_IOPS:=21667}"
 
 # TPCC
 export TPCC_DURATION="${TPCC_DURATION:=20}"
