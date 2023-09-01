@@ -23,7 +23,7 @@
           SELECT bdr.part_node(node_name := '{{ item }}')
         db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
-        port: 5444
+        port: "{{ pg_port }}"
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
@@ -38,7 +38,7 @@
           SELECT pg_replication_origin_drop('bdr_local_only_origin')
         db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
-        port: 5444
+        port: "{{ pg_port }}"
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
@@ -50,7 +50,7 @@
           DROP EXTENSION bdr CASCADE
         db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
-        port: 5444
+        port: "{{ pg_port }}"
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
@@ -62,7 +62,7 @@
         state: absent
         name: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
-        port: 5444
+        port: "{{ pg_port }}"
         login_unix_socket: "{{ pg_login_unix_socket }}"
         force: true
       become: true
@@ -83,10 +83,10 @@
       become: true
       when: inventory_hostname in ['pgd2', 'pgd3']
 
-    - name: Wait for port 5444
+    - name: Wait for port {{ pg_port }}
       ansible.builtin.wait_for:
         host: 0.0.0.0
-        port: 5444
+        port: "{{ pg_port }}"
         state: started
       when: inventory_hostname == 'pgd1'
 
@@ -119,7 +119,7 @@
           CHECKPOINT
         db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
-        port: 5444
+        port: "{{ pg_port }}"
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
@@ -130,7 +130,7 @@
         state: present
         db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
-        port: 5444
+        port: "{{ pg_port }}"
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
@@ -139,10 +139,10 @@
     - name: Create BDR node on pgd1
       community.postgresql.postgresql_query:
         query: >-
-          SELECT bdr.create_node('pgd1', 'host=pgd1 dbname={{ pgd_cluster_database }} port=5444 user={{ pg_user }}');
+          SELECT bdr.create_node('pgd1', 'host=pgd1 dbname={{ pgd_cluster_database }} port={{ pg_port }} user={{ pg_user }}');
         db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
-        port: 5444
+        port: "{{ pg_port }}"
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
@@ -154,7 +154,7 @@
           SELECT bdr.create_node_group('pgddb_group');
         db: "{{ pgd_cluster_database }}"
         login_user: "{{ pg_user }}"
-        port: 5444
+        port: "{{ pg_port }}"
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
@@ -184,8 +184,8 @@
                 -l /tmp/bdr_init_physical.log \
                 -n {{ inventory_hostname }} \
                 --node-group-name pgddb_group \
-                -d 'host=pgd1 port=5444 dbname={{ pgd_cluster_database }} user={{ pgd_replication_user }}' \
-                --local-dsn 'host={{ inventory_hostname }} port=5444 dbname={{ pgd_cluster_database }} user={{ pg_user }}'
+                -d 'host=pgd1 port={{ pg_port }} dbname={{ pgd_cluster_database }} user={{ pgd_replication_user }}' \
+                --local-dsn 'host={{ inventory_hostname }} port={{ pg_port }} dbname={{ pgd_cluster_database }} user={{ pg_user }}'
       when: inventory_hostname in ['pgd2', 'pgd3']
       become_user: "{{ pg_owner }}"
 

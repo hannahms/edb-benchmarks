@@ -7,9 +7,12 @@ pg_version: 15
 pg_owner: enterprisedb
 pg_user: enterprisedb
 pg_group: enterprisedb
+pg_login_unix_socket: "/var/run/{% if pg_type=='EPAS' %}edb/as{{ pg_version }}{% else %}postgres{% endif %}"
 bdr_writers: 16
 bdr_wal_decoder: false
 pg_type: EPAS
+pg_port: 5444
+pg_database: "{% if pg_type=='EPAS' %}edb{% else %}postgres{% endif %}"
 enable_edb_repo: true
 install_pgd: true
 pgd_version: 5
