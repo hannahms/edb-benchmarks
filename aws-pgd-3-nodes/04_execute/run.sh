@@ -10,17 +10,24 @@ export ANSIBLE_SSH_ARGS="-o ForwardX11=no -o UserKnownHostsFile=/dev/null"
 export ANSIBLE_SSH_PIPELINING=true
 export ANSIBLE_HOST_KEY_CHECKING=false
 
-# Run the ramping up benchmark
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
     -e "@$SOURCEDIR/../vars.yml" \
     "${SOURCEDIR}/playbook-setup-sync-repl.yml"
 
-ansible-playbook \
-    -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
-    -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
-    -e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
-    -e "results_directory=${RESULTS_DIRECTORY}/report-data" \
-    "${SOURCEDIR}/playbook-tpcc-run-rampup.yml"
+mkdir -p "${RESULTS_DIRECTORY}/report-data"
+for CONNECTIONS in $(seq "${DBT2_CONNECTIONS_MIN}" "${DBT2_CONNECTIONS_STEP}" \
+		"${DBT2_CONNECTIONS_MAX}"); do
+	ansible-playbook \
+		-i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
+		-e "@$SOURCEDIR/../environment.yml" \
+		-e "@$SOURCEDIR/../vars.yml" \
+		-e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
+		-e "results_directory=${RESULTS_DIRECTORY}/report-data" \
+		-e "connections=${CONNECTIONS}" \
+		-e "dbt2_results=/tmp/r${CONNECTIONS}" \
+		-e "ts_sysstat=/tmp/sysstat-${CONNECTIONS}" \
+		-e "ts_dbstat=/tmp/dbstat-${CONNECTIONS}" \
+		"${SOURCEDIR}/playbook-execute.yml"
+done

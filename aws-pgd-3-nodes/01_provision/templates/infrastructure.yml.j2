@@ -33,10 +33,10 @@ aws:
           description: "EPAS"
 
   machines:
-    hammerdb:
+    dbt2-driver:
       image_name: driver
       tags:
-        type: hammerdb
+        type: dbt2-driver
       region: {{ region }}
       az: {{ zone0 }}
       instance_type: {{ driver_instance_type }}

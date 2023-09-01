@@ -1,4 +1,5 @@
 ---
+disable_logging: false
 cluster_name: PGD-3-Nodes
 pg_data: /pgdata/data
 pg_wal: /pgwal/wal
@@ -6,8 +7,6 @@ pg_version: 15
 pg_owner: enterprisedb
 pg_user: enterprisedb
 pg_group: enterprisedb
-hammerdb_user: hammerdb
-hammerdb_version: 4.6
 bdr_writers: 16
 bdr_wal_decoder: false
 pg_type: EPAS
@@ -16,3 +15,7 @@ install_pgd: true
 pgd_version: 5
 pgd_cluster_database: tpcc
 pgd_replication_user: pgd_replication_user
+
+# Touchstone Tools save locations
+ts_load: /tmp/sysstat-load
+ts_pgd_init: /tmp/sysstat-pgd-init

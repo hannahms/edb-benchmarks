@@ -1,6 +1,6 @@
 ---
-- hosts: all
-  name: Populate TPCC database
+- hosts: primary
+  name: Destroy, create, load, and reconstruct the distributed database
   become: true
   gather_facts: true
 
@@ -8,6 +8,15 @@
     - edb_devops.edb_postgres
 
   tasks:
+    - name: Clear any previously saved system statistics data
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ ts_load }}"
+        - "{{ ts_pgd_init }}"
+      become: true
+
     - name: Remove BDR nodes
       community.postgresql.postgresql_query:
         query: >-
@@ -81,13 +90,27 @@
         state: started
       when: inventory_hostname == 'pgd1'
 
-    - name: Populate the TPCC database
+    - name: Start stats collection for load
+      ansible.builtin.shell:
+        cmd: ts sysstat -o {{ ts_load }}
+      become: true
+      async: 1
+      poll: 0
+
+    - name: Create and load the database
       ansible.builtin.command:
-        cmd: "./hammerdbcli tcl auto /home/{{ hammerdb_user }}/loader.tcl"
-        chdir: "/home/{{ hammerdb_user }}/HammerDB-{{ hammerdb_version }}"
+        cmd: >-
+          dbt2 build --db-host={{ pg_login_unix_socket }}
+          --db-port={{ pg_port }} --warehouses={{ dbt2_warehouse }} pgsql
+          {{ pgd_cluster_database }}
       changed_when: false
-      when: "'hammerdb' in group_names"
-      become_user: "{{ hammerdb_user }}"
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Stop system statistics collection for load
+      ansible.builtin.shell:
+        cmd: ts sysstat -o {{ ts_load }} -s
+      become: true
 
     - name: Issuing CHECKPOINT on pgd1
       community.postgresql.postgresql_query:
@@ -148,6 +171,13 @@
       become: true
       when: inventory_hostname in ['pgd2', 'pgd3']
 
+    - name: Start stats collection for PGD initialization
+      ansible.builtin.shell:
+        cmd: ts sysstat -o {{ ts_pgd_init }}
+      become: true
+      async: 1
+      poll: 0
+
     - name: Building pgd2 and pgd3 with bdr_init_physical
       ansible.builtin.shell: |
         /usr/edb/as{{ pg_version }}/bin/bdr_init_physical -D {{ pg_data }} \
@@ -158,6 +188,11 @@
                 --local-dsn 'host={{ inventory_hostname }} port=5444 dbname={{ pgd_cluster_database }} user={{ pg_user }}'
       when: inventory_hostname in ['pgd2', 'pgd3']
       become_user: "{{ pg_owner }}"
+
+    - name: Stop system statistics collection for PGD initialization
+      ansible.builtin.shell:
+        cmd: ts sysstat -o {{ ts_pgd_init }} -s
+      become: true
 
     # Need to use pg_ctl here instead of operating system service because
     # bdr_init_physical starts the database.
@@ -182,3 +217,37 @@
         state: started
       become: true
       when: inventory_hostname in ['pgd2', 'pgd3']
+
+    - name: Process pidstat data
+      ansible.builtin.shell:
+        cmd: ts process-pidstat -i {{ item }}/pidstat.txt
+      loop:
+        - "{{ ts_load }}"
+        - "{{ ts_pgd_init }}"
+      become: true
+
+    - name: Plot sar data
+      ansible.builtin.shell:
+        cmd: ts plot-sar -i {{ item }}/sar
+      loop:
+        - "{{ ts_load }}"
+        - "{{ ts_pgd_init }}"
+      become: true
+
+    - name: Plot pidstat data
+      ansible.builtin.shell:
+        cmd: ts plot-pidstat -i {{ item }}/pidstat.csv -o {{ item }}/pidstat
+      loop:
+        - "{{ ts_load }}"
+        - "{{ ts_pgd_init }}"
+      become: true
+
+    - name: Fetch system statistics
+      ansible.posix.synchronize:
+        mode: pull
+        src: "{{ item }}"
+        dest: "{{ results_directory }}/{{ inventory_hostname }}/"
+      loop:
+        - "{{ ts_load }}"
+        - "{{ ts_pgd_init }}"
+      become: true

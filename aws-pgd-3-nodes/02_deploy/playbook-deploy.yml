@@ -1,6 +1,6 @@
 ---
-- hosts: hammerdb
-  name: Configure HammerDB TPROC-C
+- hosts: dbt2_driver
+  name: Set up DBT-2 driver system
   become: true
   gather_facts: true
   any_errors_fatal: true
@@ -11,32 +11,12 @@
       delay: 5
       timeout: 600
 
-    - name: Initialize the user defined variables
-      ansible.builtin.set_fact:
-        disable_logging: false
-
   collections:
     - edb_devops.edb_postgres
 
   roles:
-    - setup_hammerdb
-
-  tasks:
-    - name: Load servers.yml
-      ansible.builtin.include_vars:
-        file: "{{ terraform_project_path }}/servers.yml"
-        name: infra
-
-    - name: Install psql
-      ansible.builtin.package:
-        name: postgresql
-      become: true
-
-    - name: Generate HammerDB loader script
-      ansible.builtin.template:
-        src: loader.tcl.j2
-        dest: "/home/{{ hammerdb_user }}/loader.tcl"
-      become_user: "{{ hammerdb_user }}"
+    - setup_dbt2_driver
+    - setup_touchstone_tools
 
 - hosts: primary
   name: Configure Postgres Distributed
@@ -60,7 +40,7 @@
             users: "all"
             databases: "all"
             method: "trust"
-            source: "{{ infra.servers.machines.hammerdb.private_ip }}/24"
+            source: "{{ infra.servers.machines['dbt2-driver'].private_ip }}/24"
             state: present
           - contype: "host"
             users: "all"
@@ -144,4 +124,5 @@
     - init_dbserver
     - manage_dbserver
     - setup_pgd
-    - setup_hammerdb
+    - setup_dbt2
+    - setup_touchstone_tools

@@ -1,10 +1,10 @@
 ---
 all:
   children:
-    hammerdb:
+    dbt2_driver:
       hosts:
 %{ for name, values in servers.machines ~}
-%{   if values.tags.type == "hammerdb" ~}
+%{   if values.tags.type == "dbt2-driver" ~}
         ${ name }:
           ansible_host: ${ values.public_ip }
           private_ip: ${ values.private_ip }

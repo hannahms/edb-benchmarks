@@ -1,0 +1,172 @@
+---
+- hosts: all
+  name: Execute Test
+
+  tasks:
+    - name: Load servers.yml {{ connections }}
+      ansible.builtin.include_vars:
+        file: "{{ terraform_project_path }}/servers.yml"
+        name: infra
+      when: inventory_hostname in ['dbt2-driver']
+
+    - name: Load infrastructure.yml {{ connections }}
+      ansible.builtin.include_vars:
+        file: "../infrastructure.yml"
+        name: structure
+      when: inventory_hostname in ['dbt2-driver']
+
+    - name: Clear any previously saved data {{ connections }}
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ dbt2_results }}"
+        - "{{ ts_dbstat }}"
+        - "{{ ts_sysstat }}"
+      become: true
+
+    - name: Start system stats collection {{ connections }}
+      ansible.builtin.command:
+        cmd: ts sysstat -o {{ ts_sysstat }}
+      become: true
+      async: 1
+      poll: 0
+
+    - name: Start database statistics collection {{ connections }}
+      ansible.builtin.shell:
+        cmd: >-
+          ts pgsql-stat --dbname={{ pgd_cluster_database }}
+          --host={{ pg_login_unix_socket }} --port={{ pg_port }}
+          -o {{ ts_dbstat }}
+      become: true
+      become_user: "{{ pg_owner }}"
+      async: 1
+      poll: 0
+      when: inventory_hostname in ['pgd1', 'pgd2', 'pgd3']
+
+    # Use connections to determine how many processes per processor to fork.
+    # Note that we will round up to ensure we can set the desired connection
+    # limit until someone comes up with a better formula.
+
+    - name: Calculate drivers per processor {{ connections }}
+      ansible.builtin.set_fact:
+        fpp: "{{ ((connections | int) / ansible_processor_nproc) | int + 1 }}"
+      when: inventory_hostname in ['dbt2-driver']
+
+    # Convert the ramp up time minutes to milliseconds and calculate connection
+    # delay based on the targeted ramp up time.
+
+    - name: Calculate connection delay {{ connections }}
+      ansible.builtin.set_fact:
+        connection_delay: "{{ ((dbt2_rampup | int) * 60000 / \
+                           (connections | int)) | int }}"
+      when: inventory_hostname in ['dbt2-driver']
+
+    # Don't collect stats with dbt2 because it doesn't yet support multi-master
+    # database architectures.
+
+    - name: Run DBT-2 {{ connections }}
+      ansible.builtin.command:
+        cmd: >-
+          dbt2 run
+          --comment="AWS EC2 EDB Postgres Distributed
+          {{ structure.aws.machines.pgd1.instance_type }} |
+          {{ structure.aws.machines.pgd1.volume.size_gb }} GB
+          {{ structure.aws.machines.pgd1.volume.type }} |
+          {{ structure.aws.machines.pgd1.volume.iops }} IOPS | driver
+          {{ structure.aws.machines['dbt2-driver'].instance_type }} |
+          {{ connections }} connections"
+          --connection-delay={{ connection_delay }}
+          --connections-per-processor={{ fpp }}
+          --db-host={{ infra.servers.machines.pgd1.private_ip }}
+          --db-name={{ pgd_cluster_database }}
+          --db-port={{ pg_port }}
+          --duration={{ dbt2_duration }}
+          --districts=1
+          --terminal-limit={{ connections }}
+          --warehouses={{ dbt2_warehouse }}
+          pgsql
+          {{ dbt2_results }}
+      register: result
+      changed_when: false
+      become_user: "{{ pg_owner }}"
+      become: true
+      when: inventory_hostname in ['dbt2-driver']
+
+    - name: Workload execution output {{ connections }}
+      ansible.builtin.debug:
+        var: result
+      when: inventory_hostname in ['dbt2-driver']
+
+    - name: Stop database statistics collection {{ connections }}
+      ansible.builtin.shell:
+        cmd: ts pgsql-stat -o {{ ts_dbstat }} -s
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname in ['pgd1', 'pgd2', 'pgd3']
+
+    - name: Stop system stats collection {{ connections }}
+      ansible.builtin.command:
+        cmd: ts sysstat -o {{ ts_sysstat }} -s
+      become: true
+
+    - name: Generate DBT2 report {{ connections }}
+      ansible.builtin.command:
+        cmd: dbt2 report --html {{ dbt2_results }}
+      become: true
+      become_user: "{{ pg_owner }}"
+      changed_when: false
+      when: inventory_hostname in ['dbt2-driver']
+
+    - name: Process pidstat data {{ connections }}
+      ansible.builtin.shell:
+        cmd: ts process-pidstat -i {{ ts_sysstat }}/pidstat.txt
+      become: true
+
+    - name: Plot sar data {{ connections }}
+      ansible.builtin.shell:
+        cmd: ts plot-sar -i {{ ts_sysstat }}/sar
+      become: true
+
+    - name: Plot pidstat data {{ connections }}
+      ansible.builtin.shell:
+        cmd: ts plot-pidstat -i {{ item }}/pidstat.csv -o {{ item }}/pidstat
+      loop:
+        - "{{ ts_sysstat }}"
+      become: true
+
+    - name: Plot database data {{ connections }}
+      ansible.builtin.shell:
+        cmd: ts plot-pgsql -i {{ ts_dbstat }} -d {{ pgd_cluster_database }}
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname in ['pgd1', 'pgd2', 'pgd3']
+
+    - name: Fetch DBT-2 test data {{ connections }}
+      ansible.posix.synchronize:
+        mode: pull
+        src: "{{ item }}"
+        dest: "{{ results_directory }}/{{ inventory_hostname }}/"
+      loop:
+        - "{{ dbt2_results }}"
+      become: true
+      when: inventory_hostname in ['dbt2-driver']
+
+    - name: Fetch system statistics {{ connections }}
+      ansible.posix.synchronize:
+        mode: pull
+        src: "{{ item }}"
+        dest: "{{ results_directory }}/{{ inventory_hostname }}/"
+      loop:
+        - "{{ ts_sysstat }}"
+      become: true
+
+    - name: Fetch database statistics {{ connections }}
+      ansible.posix.synchronize:
+        mode: pull
+        src: "{{ item }}"
+        dest: "{{ results_directory }}/{{ inventory_hostname }}/"
+      loop:
+        - "{{ ts_dbstat }}"
+      become: true
+      when: inventory_hostname in ['pgd1', 'pgd2', 'pgd3']
