@@ -110,10 +110,6 @@
             value: 'off'
           - name: max_worker_processes
             value: '50'
-          - name: log_filename
-            value: 'postgresql.log'
-          - name: log_statement
-            value: 'all'
 
   collections:
     - edb_devops.edb_postgres
