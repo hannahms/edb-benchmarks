@@ -8,7 +8,7 @@
     - edb_devops.edb_postgres
 
   tasks:
-    - name: Create BDR catchup time monitoring function
+    - name: Create PGD catchup time monitoring function
       community.postgresql.postgresql_query:
         query: >-
           CREATE OR REPLACE FUNCTION bdr_monitor_repl_catchup_time() RETURNS TABLE (bdr_slot_name TEXT, catchup_time INTERVAL) AS
@@ -87,7 +87,7 @@
       become: true
       become_user: "{{ pg_owner }}"
 
-    - name: Updating BDR writers configuration
+    - name: Updating PGD writers configuration
       community.postgresql.postgresql_query:
         query: >-
           SELECT bdr.alter_node_group_config('bdrdb_group', num_writers := {{ bdr_writers }}, enable_wal_decoder := {{ bdr_wal_decoder }})

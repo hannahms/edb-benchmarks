@@ -17,7 +17,7 @@
         - "{{ ts_pgd_init }}"
       become: true
 
-    - name: Remove BDR nodes
+    - name: Remove PGD nodes
       community.postgresql.postgresql_query:
         query: >-
           SELECT bdr.part_node(node_name := '{{ item }}')
@@ -136,7 +136,7 @@
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
 
-    - name: Create BDR node on pgd1
+    - name: Create PGD node on pgd1
       community.postgresql.postgresql_query:
         query: >-
           SELECT bdr.create_node('pgd1', 'host=pgd1 dbname={{ pgd_cluster_database }} port={{ pg_port }} user={{ pg_user }}');
@@ -148,7 +148,7 @@
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
 
-    - name: Create BDR group on pgd1
+    - name: Create PGD group on pgd1
       community.postgresql.postgresql_query:
         query: >-
           SELECT bdr.create_node_group('pgddb_group');
