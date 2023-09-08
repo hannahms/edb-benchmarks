@@ -12,7 +12,7 @@
       ansible.builtin.command:
         cmd: >-
          dbt2 build --db-port={{ pg_port }} --warehouses={{ dbt2_warehouse }}
-         pgsql
+         --db-host={{ infra.servers.databases.mydb1.private_ip }} pgsql
       become_user: "{{ pg_owner }}"
       changed_when: false
       register: result
