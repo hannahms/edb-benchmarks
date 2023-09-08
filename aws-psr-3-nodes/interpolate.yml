@@ -1,0 +1,3 @@
+pg_service: "edb-as-{{ pg_version }}"
+pg_bin_path: "/usr/edb/as{{ pg_version }}/bin"
+hammerdb_install_path: "/opt/HammerDB-{{ hammerdb_version }}"

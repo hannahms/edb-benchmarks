@@ -10,20 +10,13 @@ pg_unix_socket_directories:
   - "/tmp"
 
 hammerdb_version: 4.6
-hammerdb_install_path: "/opt/HammerDB-{{ hammerdb_version }}"
 hammerdb_data_path: /opt/hammerdb-data
 
 # PostgreSQL
 pg_owner: postgres
 pg_group: postgres
 pg_user: postgres
-pg_bin_path: "/usr/pgsql-{{ pg_version }}/bin"
 pg_port: 5432
-db_packages:
-  - "postgresql{{ pg_version }}-server"
-  - "sslutils_15"
-  - "edb-pg{{ pg_version }}-advanced-storage-pack1"
-  - python3-psycopg2
 
 # EPAS
 #pg_owner: enterprisedb

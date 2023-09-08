@@ -7,9 +7,7 @@ pg_user: enterprisedb
 pg_group: enterprisedb
 disable_logging: false
 hammerdb_version: 4.6
-hammerdb_install_path: "/opt/HammerDB-{{ hammerdb_version }}"
 hammerdb_data_path: /opt/hammerdb-data
-pg_login_unix_socket: "/var/run/edb/as{{ pg_version }}"
 xdb_dbname: edb
 xdb_username: xdb
 xdb_password: 12Password!!
@@ -26,8 +24,6 @@ ssd_disk: true
 enable_edb_repo: true
 pg_port: 5444
 pg_database: edb
-pg_unix_socket_directories:
-  - "/var/run/edb/as{{ pg_version }}"
 pg_settings:
   - name: wal_level
     value: 'logical'

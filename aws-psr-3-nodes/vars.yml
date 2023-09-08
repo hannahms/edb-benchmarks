@@ -14,11 +14,8 @@ ssd_disk: true
 enable_edb_repo: true
 pg_unix_socket_directories:
   - "/tmp"
-pg_service: "edb-as-{{ pg_version }}"
-pg_bin_path: "/usr/edb/as{{ pg_version }}/bin"
 
 hammerdb_version: 4.6
-hammerdb_install_path: "/opt/HammerDB-{{ hammerdb_version }}"
 hammerdb_data_path: /opt/hammerdb-data
 
 pg_settings:

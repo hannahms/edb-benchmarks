@@ -1,0 +1,1 @@
+hammerdb_install_path: "/opt/HammerDB-{{ interpolate.hammerdb_version }}"

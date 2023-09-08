@@ -1,0 +1,2 @@
+pg_login_unix_socket: /var/run/edb/as{{ pg_version }}
+pg_database: "{% if pg_type=='EPAS' %}edb{% else %}postgres{% endif %}"

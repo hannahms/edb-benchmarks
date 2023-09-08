@@ -1,0 +1,7 @@
+db_packages:
+  - "postgresql{{ interpolate.pg_version }}-server"
+  - "sslutils_15"
+  - "edb-pg{{ interpolate.pg_version }}-advanced-storage-pack1"
+  - python3-psycopg2
+hammerdb_install_path: "/opt/HammerDB-{{ interpolate.hammerdb_version }}"
+pg_bin_path: "/usr/pgsql-{{ interpolate.pg_version }}/bin"

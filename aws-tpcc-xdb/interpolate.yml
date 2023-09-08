@@ -1,0 +1,4 @@
+pg_unix_socket_directories:
+  - "/var/run/edb/as{{ interpolate.pg_version }}"
+hammerdb_install_path: "/opt/HammerDB-{{ interpolate.hammerdb_version }}"
+pg_login_unix_socket: "/var/run/edb/as{{ interpolate.pg_version }}"
