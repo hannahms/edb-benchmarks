@@ -8,6 +8,11 @@
     - edb_devops.edb_postgres
 
   tasks:
+    - name: Load servers.yml
+      ansible.builtin.include_vars:
+        file: "{{ terraform_project_path }}/servers.yml"
+        name: infra
+
     - name: Populate DBT2 database
       ansible.builtin.command:
         cmd: >-
