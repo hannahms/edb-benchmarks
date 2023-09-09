@@ -7,19 +7,17 @@ pg_version: 15
 pg_owner: enterprisedb
 pg_user: enterprisedb
 pg_group: enterprisedb
-pg_login_unix_socket: "/var/run/{% if pg_type=='EPAS' %}edb/as{{ pg_version }}{% else %}postgres{% endif %}"
 bdr_writers: 16
 bdr_wal_decoder: false
 pg_type: EPAS
 pg_port: 5444
-pg_database: "{% if pg_type=='EPAS' %}edb{% else %}postgres{% endif %}"
+
 enable_core_dump: true
 enable_edb_repo: true
 install_pgd: true
 pgd_version: 5
 pgd_cluster_database: tpcc
 pgd_replication_user: pgd_replication_user
-pg_log: "/var/log/{% if pg_type=='EPAS' %}edb{% else %}postgres{% endif %}"
 pg_log_filename: "postgresql.log"
 
 # Touchstone Tools save locations

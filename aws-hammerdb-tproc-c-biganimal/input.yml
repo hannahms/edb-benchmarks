@@ -1,0 +1,24 @@
+# lowercase anible variables will be mapped to UPPERCASE bash environment variables
+# these will be used as defaults in the case of empty inputs
+# credentials with <secret> will not be saved with a default and instead will only look at the environment
+bucket_name: ebac-reports
+benchmark_name: AWS_HAMMERDB_TPROCC_C_BIGANIMAL
+ansible_verbosity: 0
+ssh_user: rocky
+region: us-east-1
+zone0: us-east-1b
+driver_instance_type: c5.9xlarge
+pg_engine: postgres
+pg_version: 14
+pg_instance_type: r5.4xlarge
+pg_storage_type: io2
+pg_storage_properties: io2
+pg_storage_size: 4096
+pg_storage_iops: 64000
+tprocc_duration: 60
+tprocc_warehouse: 2000
+tprocc_vusers: 60
+
+# Credentials
+ba_project_id: <secret>
+ba_bearer_token: <secret>

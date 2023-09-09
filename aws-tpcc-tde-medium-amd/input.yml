@@ -1,0 +1,28 @@
+# lowercase anible variables will be mapped to UPPERCASE bash environment variables
+# these will be used as defaults in the case of empty inputs
+# credentials with <secret> will not be saved with a default and instead will only look at the environment
+bucket_name: ebac-reports
+benchmark_name: AWS_TPCC_TDE_MEDIUM_AMD
+ansible_verbosity: 0
+ssh_user: rocky
+region: us-east-1
+zone0: us-east-1b
+driver_instance_type: c5.9xlarge
+pg_instance_type: m6a.2xlarge
+pg_image_name: Rocky-8-ec2-8.6-20220515.0.x86_64
+pg_image_owner: 679593333241
+pg_ssh_user: rocky
+pgdata_storage_type: io2
+pgdata_storage_size: 9999
+pgdata_storage_iops: 22000
+pgwal_storage_type: io2
+pgwal_storage_size: 800
+pgwal_storage_iops: 12000
+tpcc_duration: 20
+tpcc_warehouse: 2000
+tpcc_rampup: 1
+tpcc_vusers: 75
+
+# Credentials
+repo_username: <secret>
+repo_password: <secret>

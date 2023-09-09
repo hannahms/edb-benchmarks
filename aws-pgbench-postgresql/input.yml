@@ -1,0 +1,17 @@
+# lowercase anible variables will be mapped to UPPERCASE bash environment variables
+# these will be used as defaults in the case of empty inputs
+# credentials with <secret> will not be saved with a default and instead will only look at the environment
+bucket_name: ebac-reports
+benchmark_name: AWS_PGBENCH_POSTGRESQL
+ansible_verbosity: 0
+region: us-east-1
+zone0: us-east-1b
+pg_instance_type: c5d.18xlarge # Assumes attached storage devices from instance type
+pg_image_name: Rocky-8-ec2-8.6-20220515.0.x86_64
+pg_image_owner: 679593333241
+pg_ssh_user: rocky
+pg_versions: ['15.3','14.8','13.11','12.15','11.20','10.23','9.6.24']
+pgbench_mode: read-write
+pgbench_scale_factor: 20000
+client_end_duration: 400
+benchmark_duration: 1200

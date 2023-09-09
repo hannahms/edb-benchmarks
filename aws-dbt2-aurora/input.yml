@@ -1,0 +1,17 @@
+# lowercase anible variables will be mapped to UPPERCASE bash environment variables
+# these will be used as defaults in the case of empty inputs
+# credentials with <secret> will not be saved with a default and instead will only look at the environment
+bucket_name: ebac-reports
+benchmark_name: AWS_DBT2_AURORA
+ansible_verbosity: 0
+ssh_user: rocky
+region: us-east-1
+zone0: us-east-1b
+zone1: us-east-1c
+driver_instance_type: c5.xlarge
+pg_instance_type: db.r5.2xlarge
+pg_version: 14
+dbt2_duration: 10000
+dbt2_warehouse: 3600
+dbt2_connections: 64
+dbt2_rampup: 45

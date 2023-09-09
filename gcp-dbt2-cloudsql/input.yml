@@ -1,0 +1,26 @@
+# lowercase anible variables will be mapped to UPPERCASE bash environment variables
+# these will be used as defaults in the case of empty inputs
+# credentials with <secret> will not be saved with a default and instead will only look at the environment
+bucket_name: ebac-reports
+benchmark_name: GCP_DBT2_CLOUDSQL
+ansible_verbosity: 0
+region: us-east4
+zone0: us-east4-a
+driver_instance_type: c2-standard-30
+pg_instance_type: db-n1-highmem-8
+pg_storage_type: pd-ssd
+# db-f1-micro and db-g1-small max 3500 GB
+pg_storage_size: 2048
+pg_storage_properties: pd-ssd
+pg_storage_iops: 5000
+pg_image_name: rocky-linux-8
+pg_ssh_user: rocky
+pg_engine: postgres
+pg_version: 14
+pg_owner: edb_admin
+pg_password: 1234567890zyx
+pg_port: 5432
+dbt2_connections: 72
+dbt2_duration: 3600
+dbt2_warehouse: 10000
+dbt2_rampup: 45

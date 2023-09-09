@@ -1,0 +1,21 @@
+# lowercase anible variables will be mapped to UPPERCASE bash environment variables
+# these will be used as defaults in the case of empty inputs
+# credentials with <secret> will not be saved with a default and instead will only look at the environment
+bucket_name: ebac-reports
+benchmark_name: GCP_DBT2_CE
+ansible_verbosity: 0
+region: us-west1
+zone0: us-west1-b
+driver_instance_type: c2-standard-30
+# This benchmark assumes GCP and attached storage.
+# GCP virtual machines ignore iops with attached storage
+pg_instance_type: c2-standard-30
+pg_storage_type: pd-ssd
+pg_storage_size: 4096
+# pg_storage_iops: 1000
+pg_image_name: rocky-linux-8
+pg_ssh_user: rocky
+dbt2_connections: 72
+dbt2_duration: 3600
+dbt2_warehouse: 10000
+dbt2_rampup: 45

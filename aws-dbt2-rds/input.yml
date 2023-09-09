@@ -1,0 +1,20 @@
+# lowercase anible variables will be mapped to UPPERCASE bash environment variables
+# these will be used as defaults in the case of empty inputs
+# credentials with <secret> will not be saved with a default and instead will only look at the environment
+bucket_name: ebac-reports
+benchmark_name: AWS_DBT2_RDS
+ansible_verbosity: 0
+region: us-east-1
+zone0: us-east-1b
+zone1: us-east-1c
+driver_instance_type: c5.9xlarge
+pg_instance_type: db.r5.8xlarge
+pg_storage_type: io1
+pg_storage_size: 4096
+pg_storage_iops: 64000
+pg_engine: postgres
+pg_version: 14
+dbt2_duration: 10000
+dbt2_warehouse: 3600
+dbt2_connections: 72
+dbt2_rampup: 45
