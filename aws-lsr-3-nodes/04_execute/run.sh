@@ -14,18 +14,18 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
+    -e "@$SOURCEDIR/../credentials.yml" \
     "${SOURCEDIR}/playbook-setup-sync-repl.yml"
 
 # Run the ramping up benchmark
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
+    -e "@$SOURCEDIR/../credentials.yml" \
     -e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
     -e "results_directory=${RESULTS_DIRECTORY}/report-data" \
     "${SOURCEDIR}/playbook-tpcc-run-rampup.yml"
 
 # Copy infrastructure.yml and vars.yml
 cp "${SOURCEDIR}/../infrastructure.yml" "$RESULTS_DIRECTORY"
-cp "${SOURCEDIR}/../vars.yml" "$RESULTS_DIRECTORY"
+cp "${SOURCEDIR}/../credentials.yml" "$RESULTS_DIRECTORY"

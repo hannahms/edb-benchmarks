@@ -14,10 +14,10 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
+    -e "@$SOURCEDIR/../credentials.yml" \
     -e "results_directory=${RESULTS_DIRECTORY}/report-data" \
     "${SOURCEDIR}/playbook-pg-upgrade-timing.yml"
 
 # Copy infrastructure.yml and vars.yml
 cp "../infrastructure.yml" "$RESULTS_DIRECTORY"
-cp "../vars.yml" "$RESULTS_DIRECTORY"
+cp "../credentials.yml" "$RESULTS_DIRECTORY"

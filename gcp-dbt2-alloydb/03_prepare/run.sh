@@ -11,6 +11,6 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
+    -e "@$SOURCEDIR/../credentials.yml" \
     -e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
     "${SOURCEDIR}/playbook-dbt2-build-db.yml"

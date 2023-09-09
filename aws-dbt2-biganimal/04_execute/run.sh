@@ -14,10 +14,9 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 ansible-playbook "${SOURCEDIR}/playbook-dbt2-run.yml" \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
     -e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
     -e "results_directory=${RESULTS_DIRECTORY}/dbt2-data"
 
 # Copy infrastructure.yml and vars.yml
 cp "${SOURCEDIR}/../infrastructure.yml" "$RESULTS_DIRECTORY/dbt2-data"
-cp "${SOURCEDIR}/../vars.yml" "$RESULTS_DIRECTORY/dbt2-data"
+cp "${SOURCEDIR}/../credentials.yml" "$RESULTS_DIRECTORY/dbt2-data"

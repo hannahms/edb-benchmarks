@@ -14,7 +14,7 @@ export ANSIBLE_ROLES_PATH="${SOURCEDIR}/../../roles"
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
+    -e "@$SOURCEDIR/../credentials.yml" \
     -e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
     -e "results_directory=${RESULTS_DIRECTORY}" \
     "${SOURCEDIR}/playbook-dbt2-run.yml"

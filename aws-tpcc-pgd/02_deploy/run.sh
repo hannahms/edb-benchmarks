@@ -27,7 +27,7 @@ ${TPA_BIN_DIR}/tpaexec provision ${TPA_DIR}
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
+    -e "@$SOURCEDIR/../credentials.yml" \
     "${SOURCEDIR}/playbook-setup-fs.yml"
 
 # TPA deployment
@@ -36,11 +36,11 @@ ${TPA_BIN_DIR}/tpaexec deploy ${TPA_DIR}
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
+    -e "@$SOURCEDIR/../credentials.yml" \
     "${SOURCEDIR}/playbook-deploy.yml"
 
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
+    -e "@$SOURCEDIR/../credentials.yml" \
     "${SOURCEDIR}/playbook-hammerdb-setup.yml"

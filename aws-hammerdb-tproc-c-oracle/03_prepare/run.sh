@@ -11,6 +11,6 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
-    -e "@../vars.yml" \
+    -e "@../credentials.yml" \
     -e "terraform_project_path=${TERRAFORM_PROJECT_PATH}" \
     ./playbook-tprocc-build-db.yml

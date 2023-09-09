@@ -14,7 +14,7 @@ export ANSIBLE_ROLES_PATH="${SOURCEDIR}/../../roles"
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
+    -e "@$SOURCEDIR/../credentials.yml" \
     "${SOURCEDIR}/playbook-setup-sync-repl.yml"
 
 mkdir -p "${RESULTS_DIRECTORY}/report-data"
@@ -36,6 +36,6 @@ done
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
-    -e "@$SOURCEDIR/../vars.yml" \
+    -e "@$SOURCEDIR/../credentials.yml" \
 	-e "results_directory=${RESULTS_DIRECTORY}" \
     "${SOURCEDIR}/playbook-save.yml"

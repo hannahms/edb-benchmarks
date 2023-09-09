@@ -22,7 +22,7 @@ do
 	ansible-playbook \
 		-i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
 		-e "@$SOURCEDIR/../environment.yml" \
-		-e "@$SOURCEDIR/../vars.yml" \
+		-e "@$SOURCEDIR/../credentials.yml" \
 		-e "pg_version=${version}" \
 		-e "pg_max_version=${max_version}" \
 		-e "results_directory=${RESULTS_DIRECTORY}/report-data" \
@@ -32,7 +32,7 @@ do
 	ansible-playbook \
 		-i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
 		-e "@$SOURCEDIR/../environment.yml" \
-		-e "@$SOURCEDIR/../vars.yml" \
+		-e "@$SOURCEDIR/../credentials.yml" \
 		-e "pg_version=${version}" \
 		-e "results_directory=${RESULTS_DIRECTORY}/report-data" \
 		"${SOURCEDIR}/playbook-pgbench-process.yml"
@@ -40,4 +40,4 @@ done
 
 # Copy infrastructure.yml and vars.yml
 cp "../infrastructure.yml" "$RESULTS_DIRECTORY/report-data"
-cp "../vars.yml" "$RESULTS_DIRECTORY/report-data"
+cp "../credentials.yml" "$RESULTS_DIRECTORY/report-data"
