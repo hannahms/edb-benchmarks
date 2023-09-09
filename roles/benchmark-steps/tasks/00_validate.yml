@@ -30,6 +30,7 @@
         {% for key, value in user_input.items() if value != '<secret>' %}
         {{ key }}: "{{ '{{' }} lookup('env', '{{ key | upper }}') | default('{{ value }}', true) {{ '}}' }}"
         {% endfor %}
+        dummy: value
       dest: "{{ env_yml_file }}"
 
   - name: Generate credential yaml file based on variable keys
@@ -40,6 +41,7 @@
         {% for key, value in user_input.items() if value == '<secret>' %}
         {{ key }}: "{{ '{{' }} lookup('env', '{{ key | upper }}') {{ '}}' }}"
         {% endfor %}
+        dummy: value
       dest: "{{ credentials_file }}"
       mode: 0400
     no_log: true
