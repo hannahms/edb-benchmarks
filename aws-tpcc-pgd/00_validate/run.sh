@@ -13,10 +13,6 @@ OVERRIDES="${OVERRIDES:=}"
 
 ANSIBLE_ROLES_PATH=$ANSIBLE_ROLES_PATH \
     ansible-playbook "${SOURCEDIR}/run.yml" \
-        -e "env_yml_file=${BENCHMARK_DIRECTORY}/environment.yml" \
-        -e "env_source_file=${BENCHMARK_DIRECTORY}/environment.sh" \
-        -e "vars_file=${BENCHMARK_DIRECTORY}/vars.yml" \
-        -e "interpolate_file=${BENCHMARK_DIRECTORY}/interpolate.yml" \
         -e "overrides=${OVERRIDES}" \
         -e "root_directory=${ROOT_DIRECTORY}" \
         -e "benchmark_directory=${BENCHMARK_DIRECTORY}" \
