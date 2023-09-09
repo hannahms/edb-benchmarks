@@ -6,7 +6,6 @@ pg_owner: enterprisedb
 pg_user: enterprisedb
 pg_group: enterprisedb
 hammerdb_version: 4.6
-hammerdb_install_path: "/opt/HammerDB-{{ hammerdb_version }}"
 hammerdb_data_path: /opt/hammerdb-data
 pg_login_unix_socket: /tmp
 bdr_dbname: edb
