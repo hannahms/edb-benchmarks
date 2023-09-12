@@ -1,0 +1,40 @@
+# Add a certain amount of latency as specified by the latency_ms variable.
+#
+# Use the 'tc' CLI utility to add latency between any systems that include this
+# role. This will allow us to test various scenarios where networks are either
+# slow or separated by varying geographical distances.
+#
+# If the latency_ms variable is defined, this list of tasks should be
+# included as part of the post-prepare series of actions. We do this here
+# because we want it to happen _after_ any primaries or replicas are
+# established, and definitely after benchmark databases are bootstrapped.
+
+---
+- name: Install tc utility on RHEL variants
+  package:
+    name: iproute-tc
+    state: present
+  become: true
+  when:
+    - ansible_distribution in ['RedHat', 'Rocky', 'CentOS', 'OracleLinux', 'AlmaLinux']
+
+- name: Install tc utility on Debian variants
+  package:
+    name: iproute2
+    state: present
+  become: true
+  when:
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Add latency to simulate regions
+  shell: |
+    tc qdisc del dev {{ ansible_default_ipv4.interface }} root
+    tc qdisc add dev {{ ansible_default_ipv4.interface }} root handle 1: prio
+    tc qdisc add dev {{ ansible_default_ipv4.interface }} parent 1:3 handle 30: netem latency {{ latency_ms }}ms
+    {% for h in groups['primary']|list + groups['standby']|list -%}
+    {%   if hostvars[h].private_ip != private_ip -%}
+    tc filter add dev {{ ansible_default_ipv4.interface }} protocol ip parent 1:0 prio 3 u32 \
+       match ip dst {{ hostvars[h].private_ip }} flowid 1:3
+    {%   endif -%}
+    {% endfor -%}
+  become: true

@@ -88,3 +88,19 @@
         name: "{{ pg_service }}"
         state: restarted
       become: true
+
+# This was added specifically to introduce optional latency between Postgres
+# hosts. But we added it as a post-prepare action to include any/all steps
+# that should happen specifically at the end of the benchmark "prepare" step.
+# We're doing this here because this benchmark creates replicas as part of
+# prepare instead of deploy.
+
+- hosts:
+    - primary
+    - standby
+  gather_facts: yes
+
+  roles:
+    - role: post-prepare
+
+

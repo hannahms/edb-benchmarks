@@ -1,0 +1,6 @@
+---
+
+- name: Add latency to primary and standby hosts (optional)
+  include_tasks: add-latency.yml
+  when: 
+    - latency_ms > 0
