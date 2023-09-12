@@ -7,12 +7,11 @@ ansible_verbosity: 0
 region: us-east4
 zone0: us-east4-a
 driver_instance_type: c2-standard-30
-pg_instance_type: db-n1-highmem-8
+pg_instance_type: db-perf-optimized-N-8
 pg_storage_type: pd-ssd
-# db-f1-micro and db-g1-small max 3500 GB
-pg_storage_size: 2048
+pg_storage_size: 4096
 pg_storage_properties: pd-ssd
-pg_storage_iops: 5000
+pg_storage_iops: 15000
 pg_image_name: rocky-linux-8
 pg_ssh_user: rocky
 pg_engine: postgres
