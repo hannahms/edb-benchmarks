@@ -1,9 +1,12 @@
 #!/bin/bash -eux
-# Push DBT-2 results to the S3 bucket
-
-date=$(date +'%Y-%m-%dT%H:%M:%S')
 
 SOURCEDIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
-RESULTS_DIRECTORY="${SOURCEDIR}/../results"
-aws s3 cp "${RESULTS_DIRECTORY}" \
-		"s3://${BUCKET_NAME}/${BENCHMARK_NAME}/${date}/" --recursive
+BENCHMARK_DIRECTORY="$(realpath "${SOURCEDIR}/..")"
+ROOT_DIRECTORY="$(realpath "${BENCHMARK_DIRECTORY}/..")"
+ANSIBLE_ROLES_PATH="${ROOT_DIRECTORY}/roles"
+
+ANSIBLE_ROLES_PATH=$ANSIBLE_ROLES_PATH \
+    ansible-playbook \
+        -e "@$SOURCEDIR/../environment.yml" \
+        -e "@$SOURCEDIR/../credentials.yml" \
+        "${SOURCEDIR}/run.yml"

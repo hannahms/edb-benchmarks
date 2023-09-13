@@ -1,0 +1,9 @@
+- hosts: localhost
+  name: Save results to s3
+  gather_facts: false
+
+  tasks:
+    - name: Benchmark step - push results
+      include_role:
+        name: benchmark-steps
+        tasks_from: 05_push_results.yml

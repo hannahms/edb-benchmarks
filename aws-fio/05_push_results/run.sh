@@ -1,9 +1,12 @@
 #!/bin/bash -eux
 
 SOURCEDIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
-RESULTS_DIRECTORY="${SOURCEDIR}/../results"
-date=$(date +'%Y-%m-%dT%H:%M:%S')
+BENCHMARK_DIRECTORY="$(realpath "${SOURCEDIR}/..")"
+ROOT_DIRECTORY="$(realpath "${BENCHMARK_DIRECTORY}/..")"
+ANSIBLE_ROLES_PATH="${ROOT_DIRECTORY}/roles"
 
-# Upload benchmark data
-aws s3 cp "$RESULTS_DIRECTORY/" \
-		"s3://${BUCKET_NAME}/${BENCHMARK_NAME}/${date}/" --recursive
+ANSIBLE_ROLES_PATH=$ANSIBLE_ROLES_PATH \
+    ansible-playbook \
+        -e "@$SOURCEDIR/../environment.yml" \
+        -e "@$SOURCEDIR/../credentials.yml" \
+        "${SOURCEDIR}/run.yml"
