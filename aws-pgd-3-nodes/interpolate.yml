@@ -1,3 +1,3 @@
-pg_login_unix_socket: "/var/run/{% if pg_type=='EPAS' %}edb/as{{ pg_version }}{% else %}postgres{% endif %}"
-pg_database: "{% if pg_type=='EPAS' %}edb{% else %}postgres{% endif %}"
-pg_log: "/var/log/{% if pg_type=='EPAS' %}edb{% else %}postgres{% endif %}"
+pg_login_unix_socket: "/var/run/{% if interpolate.pg_type=='EPAS' %}edb/as{{ interpolate.pg_version }}{% else %}postgres{% endif %}"
+pg_database: "{% if interpolate.pg_type=='EPAS' %}edb{% else %}postgres{% endif %}"
+pg_log: "/var/log/{% if interpolate.pg_type=='EPAS' %}edb{% else %}postgres{% endif %}"
