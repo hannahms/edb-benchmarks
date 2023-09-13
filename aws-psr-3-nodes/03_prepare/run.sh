@@ -8,6 +8,7 @@ export ANSIBLE_PIPELINING=true
 export ANSIBLE_SSH_ARGS="-o ForwardX11=no -o UserKnownHostsFile=/dev/null"
 export ANSIBLE_SSH_PIPELINING=true
 export ANSIBLE_HOST_KEY_CHECKING=false
+export ANSIBLE_ROLES_PATH="${ROOT_DIRECTORY}/roles"
 
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
