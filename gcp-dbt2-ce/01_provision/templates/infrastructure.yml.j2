@@ -39,8 +39,8 @@ gcloud:
       region: {{ region }}
       instance_type: {{ driver_instance_type }}
       volume:
-        type: pd-standard
-        size_gb: 50
+        type: pd-balanced
+        size_gb: 1024
     postgres1:
       image_name: postgres
       zone_name: main
