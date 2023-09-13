@@ -1,0 +1,14 @@
+---
+  - ansible.builtin.set_fact:
+      default_directory: "{{ benchmark_name }}/{{ lookup('pipe', 'date +%Y-%m-%dT%H:%M:%S') }}/"
+
+  - ansible.builtin.set_fact:
+      s3_directory: "{{ s3_directory | default(default_directory, true) }}"
+
+  - ansible.builtin.set_fact:
+      s3_uri: "s3://{{ bucket_name }}/{{ s3_directory }}"
+
+  - name: Upload files to S3 bucket
+    ansible.builtin.shell:
+      cmd: aws s3 cp {{ results_directory | quote }} {{ s3_uri | quote }} --recursive
+    register: s3_upload
