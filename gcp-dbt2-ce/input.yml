@@ -10,9 +10,9 @@ driver_instance_type: c2-standard-30
 # This benchmark assumes GCP and attached storage.
 # GCP virtual machines ignore iops with attached storage
 pg_instance_type: c2-standard-30
-pg_storage_type: pd-ssd
-pg_storage_size: 4096
-# pg_storage_iops: 1000
+pg_storage_type: pd-balanced
+pg_storage_size: 3072
+pg_storage_iops: 15000
 pg_image_name: rocky-linux-8
 pg_ssh_user: rocky
 dbt2_connections: 72

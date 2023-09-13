@@ -39,8 +39,8 @@ gcloud:
       region: {{ region }}
       instance_type: {{ driver_instance_type }}
       volume:
-        type: pd-standard
-        size_gb: 50
+        type: pd-balanced
+        size_gb: 1024
     postgres1:
       image_name: postgres
       zone_name: main
@@ -49,6 +49,19 @@ gcloud:
       region: {{ region }}
       instance_type: {{ pg_instance_type }}
       volume:
+        type: pd-balanced
+        size_gb: 1024
+      additional_volumes:
+        - mount_point: /pgdata
+          size_gb: {{ pg_storage_size }}
+          type: {{ pg_storage_type }}
+          iops: {{ pg_storage_iops }}
+          encrypted: false
+        - mount_point: /pgwal
+          size_gb: 1024
+          type: pg-balanced
+          iops: 15000
+          encrypted: false
         size_gb: {{ pg_storage_size }}
         type: {{ pg_storage_type }}
         encrypted: false
