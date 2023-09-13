@@ -1,0 +1,2 @@
+pg_group: "{{ interpolate.pg_owner }}"
+pg_superuser: "{{ interpolate.pg_owner }}"
