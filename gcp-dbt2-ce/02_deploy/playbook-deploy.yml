@@ -69,7 +69,7 @@
           - name: archive_timeout
             value: '300'
           - name: effective_cache_size
-            value: '60GB'
+            value: '3145728'
           - name: idle_in_transaction_session_timeout
             value: '0'
           - name: log_autovacuum_min_duration
