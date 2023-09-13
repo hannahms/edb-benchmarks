@@ -1,6 +1,8 @@
 #!/bin/bash -eux
 
 SOURCEDIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+BENCHMARK_DIRECTORY="$(realpath "${SOURCEDIR}/..")"
+ROOT_DIRECTORY="$(realpath "${BENCHMARK_DIRECTORY}/..")"
 TERRAFORM_PROJECT_NAME="terraform"
 TERRAFORM_PROJECT_PATH="${SOURCEDIR}/../${TERRAFORM_PROJECT_NAME}"
 
