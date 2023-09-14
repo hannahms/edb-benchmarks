@@ -9,6 +9,8 @@
       ansible.builtin.package:
         name: "{{ item }}"
       loop:
+        - bison
+        - flex
         - wget
         - gcc
         - make
@@ -35,7 +37,7 @@
     - name: Configure PostgreSQL compilation
       ansible.builtin.command:
         cmd: >
-          ./configure --prefix=/usr/local/pgsql-{{ pg_version }}
+          ./configure --prefix=/usr/local/pgsql-{{ pg_version }} --without-icu
         chdir: "/tmp/postgresql-{{ pg_version }}"
       loop: "{{ pg_versions }}"
       loop_control:
