@@ -20,10 +20,12 @@ ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
     -e "@$SOURCEDIR/../credentials.yml" \
+    -e "{\"pg_versions\": ${PG_VERSIONS}}" \
     "${SOURCEDIR}/playbook-deploy.yml"
 
 ansible-playbook \
     -i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
     -e "@$SOURCEDIR/../environment.yml" \
     -e "@$SOURCEDIR/../credentials.yml" \
+    -e "{\"pg_versions\": ${PG_VERSIONS}}" \
     "${SOURCEDIR}/playbook-setup-pg.yml"
