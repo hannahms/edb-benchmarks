@@ -1,5 +1,5 @@
 ---
-- hosts: primary
+- hosts: all
   name: Install PostgreSQL
   become: true
   gather_facts: false

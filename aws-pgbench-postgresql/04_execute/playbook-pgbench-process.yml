@@ -1,5 +1,5 @@
 ---
-- hosts: pgsql1.AWS-Cluster-default.internal
+- hosts: all
   name: Process pgbench results
   become: false
 
