@@ -113,6 +113,17 @@
     content: "{{ lsblk.stdout }}"
     dest: "{{ save_dir }}/lsblk.txt"
 
+- name: Capture df output
+  ansible.builtin.command:
+    cmd: df -h
+  register: df
+
+- name: Save df output
+  local_action:
+    module: ansible.builtin.copy
+    content: "{{ df.stdout }}"
+    dest: "{{ save_dir }}/df.txt"
+
 - name: Capture lscpu output
   ansible.builtin.command:
     cmd: lscpu
