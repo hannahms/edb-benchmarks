@@ -1,0 +1,53 @@
+---
+all:
+  children:
+    primary:
+      hosts:
+%{ for name, values in servers.machines ~}
+%{   if values.tags.type == "primary" ~}
+        ${ name }:
+          ansible_host: ${ values.public_ip }
+          private_ip: ${ values.private_ip }
+          ansible_user: ${ values.operating_system.ssh_user }
+          ansible_ssh_private_key_file: ${ values.operating_system.ssh_private_key_file }
+          etcd_cluster_name: 'patroni-etcd'
+          etcd: true
+          haproxy: true
+          proxy_location: 'zone1'
+%{   endif ~}
+%{ endfor ~}
+    standby:
+      hosts:
+%{ for name, values in servers.machines ~}
+%{   if values.tags.type == "standby" ~}
+        ${ name }:
+          ansible_host: ${ values.public_ip }
+          private_ip: ${ values.private_ip }
+          upstream_node_private_ip: ${ servers.machines.postgres1.private_ip }
+          ansible_user: ${ values.operating_system.ssh_user }
+          ansible_ssh_private_key_file: ${ values.operating_system.ssh_private_key_file }
+          etcd_cluster_name: 'patroni-etcd'
+          etcd: true
+          haproxy: true
+          proxy_location: 'zone1'
+%{      if name == "postgres2" ~}
+          replication_type: synchronous
+%{      else ~}
+          replication_type: asynchronous
+%{      endif ~}
+%{   endif ~}
+%{ endfor ~}
+    pgbouncer:
+      hosts:
+%{ for name, values in servers.machines ~}
+%{   if values.tags.type == "proxy" ~}
+        ${ name }:
+          ansible_host: ${ values.public_ip }
+          private_ip: ${ values.private_ip }
+          ansible_user: ${ values.operating_system.ssh_user }
+          ansible_ssh_private_key_file: ${ values.operating_system.ssh_private_key_file }
+          haproxy: true
+          haproxy_configure: true
+          proxy_location: 'zone1'
+%{   endif ~}
+%{ endfor ~}

@@ -1,0 +1,140 @@
+---
+- hosts: all
+  name: Save data
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Set local save directory
+      ansible.builtin.set_fact:
+        save_dir: "{{ results_directory }}/{{ inventory_hostname }}"
+
+    - name: Create local save directory
+      local_action:
+        module: ansible.builtin.file
+        path: "{{ save_dir }}"
+        state: directory
+
+    - name: Capture sysctl output
+      ansible.builtin.command:
+        cmd: sysctl -a
+      register: sysctl
+      become: true
+
+    - name: Save sysctl output
+      local_action:
+        module: ansible.builtin.copy
+        content: "{{ sysctl.stdout }}"
+        dest: "{{ save_dir }}/sysctl.txt"
+
+    - name: Capture systemd journal output
+      ansible.builtin.command:
+        cmd: journalctl -xa
+      register: journalctl
+      become: true
+
+    - name: Save systemd journal output
+      local_action:
+        module: ansible.builtin.copy
+        content: "{{ journalctl.stdout }}"
+        dest: "{{ save_dir }}/journalctl.txt"
+
+    - name: Check if PostgreSQL log exists
+      ansible.builtin.stat:
+        path: "{{ pg_log }}/{{ pg_log_filename }}"
+      register: stat_result
+      run_once: true
+      when:
+        - pg_log is defined
+        - pg_log_filename is defined
+        - inventory_hostname in ['postgres1', 'postgres2', 'postgres3']
+      become: true
+
+    - name: Fetch PostgreSQL log
+      ansible.builtin.fetch:
+        src: "{{ pg_log }}/{{ pg_log_filename }}"
+        dest: "{{ save_dir }}/{{ pg_log_filename }}"
+        flat: true
+      become: true
+      when:
+        - pg_log is defined
+        - pg_log_filename is defined
+        - stat_result.stat.exists
+        - inventory_hostname in ['postgres1', 'postgres2', 'postgres3']
+
+    - name: Check if Patroni log exists
+      ansible.builtin.stat:
+        path: "/var/log/patroni/patroni.log"
+      register: patroni_stat
+      run_once: true
+      when:
+        - inventory_hostname in ['postgres1', 'postgres2', 'postgres3']
+      become: true
+
+    - name: Fetch Patroni log
+      ansible.builtin.fetch:
+        src: "/var/log/patroni/patroni.log"
+        dest: "{{ save_dir }}/patroni.log"
+        flat: true
+      become: true
+      when:
+        - patroni_stat.stat.exists
+        - inventory_hostname in ['postgres1', 'postgres2', 'postgres3']
+
+    - name: Check if PgBouncer log exists
+      ansible.builtin.stat:
+        path: "{{ pgbouncer_log_file }}"
+      register: pgbouncer_stat
+      run_once: true
+      when: "'pgbouncer' in group_names"
+      become: true
+
+    - name: Fetch PgBouncer log
+      ansible.builtin.fetch:
+        src: "{{ pgbouncer_log_file }}"
+        dest: "{{ save_dir }}/pgbouncer.log"
+        flat: true
+      become: true
+      when:
+        - "'pgbouncer' in group_names"
+
+    - name: Check if pgb.txt exists
+      ansible.builtin.stat:
+        path: "/tmp/pgbench-tps.txt"
+      register: pgb_stat
+      when: "'pgbouncer' in group_names"
+      become: true
+
+    - name: Fetch pgb.txt log
+      ansible.builtin.fetch:
+        src: "/tmp/pgbench-tps.txt"
+        dest: "{{ save_dir }}/pgbench-tps.txt"
+        flat: true
+      become: true
+      when:
+        - "'pgbouncer' in group_names"
+
+    - name: Capture meminfo output
+      ansible.builtin.command:
+        cmd: cat /proc/meminfo
+      register: meminfo
+
+    - name: Save meminfo output
+      local_action:
+        module: ansible.builtin.copy
+        content: "{{ meminfo.stdout }}"
+        dest: "{{ save_dir }}/meminfo.txt"
+
+    - name: Create touchstone data archive
+      ansible.builtin.command:
+        cmd: tar cvzf /tmp/touchstone.tar.gz /tmp/touchstone
+      throttle: 1
+
+    - name: Fetch touchstone data files
+      ansible.builtin.fetch:
+        src: "/tmp/touchstone.tar.gz"
+        dest: "{{ save_dir }}/touchstone.tar.gz"
+        flat: true
+      throttle: 1

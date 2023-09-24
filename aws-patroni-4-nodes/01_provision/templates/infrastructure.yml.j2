@@ -1,0 +1,93 @@
+# The following template assumes postgres instances within AWS and
+#   have additional attached storage devices based on the pg_instance_type provided
+cluster_name: AWS-Patroni-4-nodes
+aws:
+  tags:
+    cluster_name: AWS-Patroni-4-nodes
+    created_by: edb-benchmarks
+  images:
+    postgres:
+      name: {{ pg_image_name }}
+      owner: {{ pg_image_owner }}
+      ssh_user: {{ pg_ssh_user }}
+  regions:
+    {{ region }}:
+      cidr_block: 10.0.0.0/16
+      zones:
+        {{ zone0 }}: 10.0.0.0/24
+      service_ports:
+        - port: 22
+          protocol: tcp
+          description: "SSH"
+        - port: 5432
+          protocol: tcp
+          description: "postgres-port"
+        - port: 5444
+          protocol: tcp
+          description: "epas-port"
+        - port: 2379
+          protocol: tcp
+          description: "etcd-client"
+        - port: 2380
+          protocol: tcp
+          description: "etcd-peer"
+        - port: 8008
+          protocol: tcp
+          description: "patroni-port"
+        - port: 5000
+          protocol: tcp
+          description: "haproxy"
+        - port: 5001
+          protocol: tcp
+          description: "haproxy"
+
+
+  machines:
+    postgres1:
+      image_name: postgres
+      tags:
+        type: primary
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: gp2
+        size_gb: 50
+        iops: 5000
+        encrypted: false
+    postgres2:
+      image_name: postgres
+      tags:
+        type: standby
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: gp2
+        size_gb: 50
+        iops: 5000
+        encrypted: false
+    postgres3:
+      image_name: postgres
+      tags:
+        type: standby
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: gp2
+        size_gb: 50
+        iops: 5000
+        encrypted: false
+    pooler1:
+      image_name: postgres
+      tags:
+        type: proxy
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: gp2
+        size_gb: 50
+        iops: 5000
+        encrypted: false

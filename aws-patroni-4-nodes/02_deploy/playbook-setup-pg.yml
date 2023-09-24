@@ -1,0 +1,48 @@
+---
+- hosts: primary, standby
+  name: Install PostgreSQL
+  become: true
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Load servers.yml
+      ansible.builtin.include_vars:
+        file: "{{ terraform_project_path }}/servers.yml"
+        name: infra
+
+    - name: Load infrastructure.yml
+      ansible.builtin.include_vars:
+        file: "../infrastructure.yml"
+        name: structure
+
+    - name: Allow connections from all hosts
+      ansible.builtin.lineinfile:
+        path: "{{ pg_data }}/pg_hba.conf"
+        line: "{{ item }}"
+        state: present
+      become_user: "{{ pg_owner }}"
+      throttle: 1
+      loop:
+        - "host    all    all    {{ infra.servers.machines.pooler1.private_ip }}/32    trust"
+        - "host    all    all    {{ infra.servers.machines.postgres1.private_ip }}/32    trust"
+        - "host    all    all    {{ infra.servers.machines.postgres2.private_ip }}/32    trust"
+        - "host    all    all    {{ infra.servers.machines.postgres3.private_ip }}/32    trust"
+
+    - name: Reload postgres
+      ansible.builtin.systemd:
+        name: "{{ pg_service }}"
+        state: reloaded
+      become: true
+
+    - name: Set pg_proxy_address
+      ansible.builtin.set_fact:
+        pg_proxy_address: "{{ infra.servers.machines.pooler1.private_ip }}:{{ pgbouncer_listen_port }}"
+
+    - name: Update proxy_address in Patroni DCS
+      ansible.builtin.command:
+        cmd: "curl -s -XPATCH -d '{\"proxy_address\":\"{{ pg_proxy_address }}\"}' http://localhost:8008/config"
+      become_user: "{{ pg_owner }}"
+      when: "'primary' in group_names"

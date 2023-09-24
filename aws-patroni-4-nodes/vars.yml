@@ -1,0 +1,67 @@
+---
+# postgres vars
+pg_version: 15
+pg_port: 5432
+pg_type: "PG"
+pg_group: "postgres"
+pg_owner: "postgres"
+pg_password: "9Password123"
+pg_superuser: "postgres"
+pg_replication_user: "repuser"
+pg_user_home: "/var/lib/pgsql"
+pg_bin_path: "/usr/pgsql-15/bin"
+pg_data: "/opt/pg_data/pgdata"
+pg_wal: "/opt/pg_wal/pgwal"
+
+use_replication_slots: true
+enable_edb_repo: false
+enable_epel_repo: "true"
+pg_service: "postgresql-15-patroni"
+use_validation: false
+pg_log: "/var/log/postgres"
+pg_log_filename: "postgresql.log"
+
+# patroni vars
+use_patroni: true
+patroni_pip_install: true
+patroni_rest_api_port: "8008"
+patroni_rest_api_listen_addrr: "0.0.0.0"
+
+# etcd vars
+etcd_version: "3.5.7"
+etcd_owner: "postgres"
+etcd_group: "postgres"
+etcd_ssl: true
+etcd_client_port: 2379
+etcd_peer_port: 2380
+
+# pgbouncer vars
+pgbouncer_listen_port: 5432
+pgbouncer_listen_address: "*"
+pgbouncer_auth_user_list:
+ - username: "postgres"
+   password: "9Password123"
+   state: present
+pgbouncer_admin_users: "pgbouncer"
+pgbouncer_auth_type: "trust"
+pgbouncer_auth_file: "/etc/pgbouncer/userlist.txt"
+pgbouncer_pid_file: "/run/pgbouncer/pgbouncer.pid"
+pgbouncer_config_file: "/etc/pgbouncer/pgbouncer.ini"
+pgbouncer_databases_file: "/etc/pgbouncer/databases.ini"
+pgbouncer_log_file: "/var/log/pgbouncer/pgbouncer.log"
+pgbouncer_pool_mode: "transaction"
+pgbouncer_default_pool_size: 20
+pgbouncer_max_client_conn: 100
+pgbouncer_user: "pgbouncer"
+pgbouncer_group: "pgbouncer"
+
+# haproxy vars
+haproxy_read_only_lb: false
+haproxy_listen_address: "*"
+haproxy_port: 5000
+haproxy_global_maxconn: 100
+
+# pgbench vars
+pgbench_db: "pgbench"
+pgbench_scale_factor: 20
+pgbench_run_time: 1200

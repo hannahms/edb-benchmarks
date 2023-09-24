@@ -1,0 +1,118 @@
+---
+- hosts: primary
+  name: Populate pgbench database
+  become: true
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Create the pgbench database
+      ansible.builtin.command:
+        cmd: "{{ pg_bin_path }}/createdb {{ pgbench_db }}"
+      become_user: "{{ pg_owner }}"
+
+
+- hosts: pgbouncer
+  name: Import scripts and populate database
+  become: true
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Load servers.yml
+      ansible.builtin.include_vars:
+        file: "{{ terraform_project_path }}/servers.yml"
+        name: infra
+
+    - name: Load infrastructure.yml
+      ansible.builtin.include_vars:
+        file: "../infrastructure.yml"
+        name: structure
+
+    - name: Copy the benchmark script pgbench_run
+      ansible.builtin.copy:
+        src: ./files/pgbench_run.sh
+        dest: /tmp/pgbench_run.sh
+        mode: "0755"
+      become: true
+
+    - name: Copy the downtime-checker.py
+      ansible.builtin.copy:
+        src: ./files/downtime-checker.py
+        dest: /tmp/downtime-checker.py
+        mode: "0755"
+      become: true
+
+    - name: Set ph and pgbench_exec
+      ansible.builtin.set_fact:
+        pgbench_exec: "{{ pg_bin_path }}/pgbench"
+        ph: "{{ infra.servers.machines.pooler1.private_ip }}"
+
+    - name: Populate pgbench database
+      ansible.builtin.command:
+        cmd: >
+          {{ pgbench_exec }} -i -s {{ pgbench_scale_factor }} -h {{ ph }} -p {{ pgbouncer_listen_port }} -U {{ pg_owner }} -q {{ pgbench_db }}
+      become: true
+
+
+- hosts: all
+  name: Start sysstat and dbstat collection
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Load servers.yml
+      ansible.builtin.include_vars:
+        file: "{{ terraform_project_path }}/servers.yml"
+        name: infra
+
+    - name: Load infrastructure.yml
+      ansible.builtin.include_vars:
+        file: "../infrastructure.yml"
+        name: structure
+
+    - name: Make sure touschstone target data dir and log target data dir do not exist
+      ansible.builtin.file:
+        path: /tmp/touchstone
+        state: absent
+      become: true
+
+    - name: Include start_system_stats tasks to start sysstat data collection
+      ansible.builtin.include_role:
+        name: manage_touchstone_tools
+        tasks_from: start_system_stats
+      vars:
+        ts_output_dir: "/tmp/touchstone/sysstat_{{ inventory_hostname | regex_replace('[^a-zA-Z0-9_]', '_') }}"
+        sec_bw_sample: 60
+
+    - name: Include start_db_stats tasks to start pgsql stats data collection
+      ansible.builtin.include_role:
+        name: manage_touchstone_tools
+        tasks_from: start_db_stats
+      vars:
+        ts_output_dir: "/tmp/touchstone/dbstat_{{ inventory_hostname | regex_replace('[^a-zA-Z0-9_]', '_') }}"
+        sec_bw_sample: 60
+        pg_database: "{{ pgbench_db }}"
+        pg_server_hostname: "{{ infra.servers.machines.pooler1.private_ip }}"
+        pg_port: "{{ pgbouncer_listen_port }}"
+        pg_owner: "{{ pg_owner }}"
+      when: "'pgbouncer' in group_names"
+
+    - name: Wait for Postgres to be ready
+      ansible.builtin.command:
+        cmd: >
+          {{ pg_bin_path }}/pg_isready
+      become_user: "{{ pg_owner }}"
+      when: "'primary' in group_names"
+      register: pg_isready
+      until: "pg_isready is not failed"
+      retries: 10
+      delay: 10
+
+
