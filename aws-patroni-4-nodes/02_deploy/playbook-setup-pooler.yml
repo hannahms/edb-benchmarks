@@ -1,0 +1,84 @@
+---
+- hosts: pgbouncer
+  name: Install
+  become: true
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Disable builtin postgresql module
+      ansible.builtin.shell: >
+        dnf -qy module disable postgresql
+      args:
+        executable: /bin/bash
+      register: disable_builtin_postgres
+      changed_when: disable_builtin_postgres.rc == 0
+      failed_when: disable_builtin_postgres.rc != 0
+      ignore_errors: true
+      become: true
+
+    - name: Load servers.yml
+      ansible.builtin.include_vars:
+        file: "{{ terraform_project_path }}/servers.yml"
+        name: infra
+
+    - name: Load infrastructure.yml
+      ansible.builtin.include_vars:
+        file: "../infrastructure.yml"
+        name: structure
+
+    - name: Ensure group exists {{ pg_group }}
+      ansible.builtin.group:
+        name: "{{ pg_group }}"
+        state: present
+
+    - name: Ensure user exists {{ pg_owner }}
+      ansible.builtin.user:
+        name: "{{ pg_owner }}"
+        group: "{{ pg_group }}"
+        create_home: true
+        home: "{{ pg_user_home }}"
+        shell: /bin/bash
+        generate_ssh_key: false
+      become: true
+
+    - name: Install postgresql server
+      ansible.builtin.package:
+        name: "postgresql{{ pg_version }}-server"
+        state: present
+      become: true
+
+    - name: Manage PgBouncer databases entries in {{ pgbouncer_databases_file }}
+      ansible.builtin.lineinfile:
+        path: "{{ pgbouncer_databases_file }}"
+        line: >-
+          {{ pgbench_db }} = host={{ item }} port={{ haproxy_port }} dbname={{ pgbench_db }}
+          user={{ pg_owner }} password={{ pg_password }} pool_size={{ pgbouncer_default_pool_size }}
+          pool_mode={{ pgbouncer_pool_mode }} max_db_connections={{ pgbouncer_max_client_conn }}
+        state: present
+      become: true
+      loop:
+        - "{{ infra.servers.machines.pooler1.private_ip }}"
+        - "127.0.0.1"
+
+    - name: Reload PgBouncer configuration
+      ansible.builtin.shell:
+        cmd: kill -HUP $(cat {{ pgbouncer_pid_file }})
+      changed_when: false
+      become: true
+
+    - name: Enable HAProxy to bind to any IP
+      ansible.posix.seboolean:
+        name: haproxy_connect_any
+        state: yes
+        persistent: yes
+      become: yes
+
+    - name: Restart haproxy
+      systemd:
+        name: haproxy
+        state: restarted
+        enabled: yes
+      become: yes
