@@ -114,5 +114,3 @@
       until: "pg_isready is not failed"
       retries: 10
       delay: 10
-
-

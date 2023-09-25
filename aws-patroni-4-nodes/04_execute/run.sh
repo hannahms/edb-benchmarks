@@ -32,4 +32,3 @@ ansible-playbook \
 cp "../infrastructure.yml" "$RESULTS_DIRECTORY"
 cp "../environment.yml" "$RESULTS_DIRECTORY"
 cp "../vars.yml" "$RESULTS_DIRECTORY"
-
