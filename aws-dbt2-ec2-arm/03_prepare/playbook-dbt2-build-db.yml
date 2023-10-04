@@ -1,0 +1,26 @@
+---
+- hosts: dbt2_driver
+  name: Populate DBT2 database
+  become: true
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Load servers.yml
+      ansible.builtin.include_vars:
+        file: "{{ terraform_project_path }}/servers.yml"
+        name: infra
+
+    - name: Populate DBT2 database
+      ansible.builtin.command:
+        cmd: >-
+         dbt2 build --db-port={{ pg_port }} --warehouses={{ dbt2_warehouse }} --db-host={{ infra.servers.machines.postgres1.private_ip }} pgsql
+      become_user: "{{ pg_owner }}"
+      changed_when: false
+      register: result
+
+    - name: Database build output
+      ansible.builtin.debug:
+        var: result
