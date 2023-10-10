@@ -24,11 +24,6 @@
         name: "{{ pg_owner }}"
       when: inventory_hostname not in groups['primary']
 
-- hosts: primary
-  name: Install repo on dbserver
-
-  collections:
-    - edb_devops.edb_postgres
   roles:
     - setup_repo
 
