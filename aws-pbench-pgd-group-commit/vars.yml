@@ -1,0 +1,11 @@
+---
+disable_logging: false
+cluster_name: pgbench-pgd-camo
+pg_data: /pgdata/data
+pg_wal: /pgwal/wal
+pg_type: EPAS
+pg_port: 5444
+pg_version: 15
+pg_owner: enterprisedb
+pg_user: enterprisedb
+pg_group: enterprisedb

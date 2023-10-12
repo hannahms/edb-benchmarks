@@ -1,0 +1,344 @@
+---
+- hosts: primary
+  name: Destroy, create, load, and reconstruct the distributed database
+  become: true
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Clear any previously saved system statistics data
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ ts_load }}"
+        - "{{ ts_pgd_init }}"
+      become: true
+
+    - name: Remove PGD nodes
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT bdr.part_node(node_name := '{{ item }}')
+        db: "{{ pgd_cluster_database }}"
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+      loop:
+        - pgd2
+        - pgd3
+
+    - name: Cleanup replication origin
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT pg_replication_origin_drop('bdr_local_only_origin')
+        db: "{{ pgd_cluster_database }}"
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: DROP bdr extension
+      community.postgresql.postgresql_query:
+        query: >-
+          DROP EXTENSION bdr CASCADE
+        db: "{{ pgd_cluster_database }}"
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: "DROP {{ pgd_cluster_database }} database"
+      community.postgresql.postgresql_db:
+        maintenance_db: postgres
+        state: absent
+        name: "{{ pgd_cluster_database }}"
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        force: true
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Restart Postgres on pgd1
+      ansible.builtin.systemd:
+        name: "edb-as-{{ pg_version }}"
+        state: restarted
+      become: true
+      when: inventory_hostname == 'pgd1'
+
+    - name: Stop Postgres on pgd2 and pgd3 [1]
+      ansible.builtin.systemd:
+        name: "edb-as-{{ pg_version }}"
+        state: stopped
+      become: true
+      when: inventory_hostname in ['pgd2', 'pgd3']
+
+    - name: Wait for port {{ pg_port }}
+      ansible.builtin.wait_for:
+        host: 0.0.0.0
+        port: "{{ pg_port }}"
+        state: started
+      when: inventory_hostname == 'pgd1'
+
+    - name: Start stats collection for load
+      ansible.builtin.shell:
+        cmd: ts sysstat -o {{ ts_load }}
+      become: true
+      async: 1
+      poll: 0
+
+    - name: Create database {{ pgd_cluster_database }}
+      ansible.builtin.command:
+        cmd: >-  
+          /usr/edb/as{{ pg_version }}/bin/createdb -h {{ pg_login_unix_socket }} {{ pgd_cluster_database }}
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Initialize the database {{ pgd_cluster_database }}
+      ansible.builtin.command:
+        cmd: >-
+          /usr/edb/as{{ pg_version }}/bin/pgd_bench -h {{ pg_login_unix_socket }}
+          -p {{ pg_port }} -i -s {{ pgbench_scale_factor }} -q
+          {{ pgd_cluster_database }}
+      changed_when: false
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Stop system statistics collection for load
+      ansible.builtin.shell:
+        cmd: ts sysstat -o {{ ts_load }} -s
+      become: true
+
+    - name: Issuing CHECKPOINT on pgd1
+      community.postgresql.postgresql_query:
+        autocommit: true
+        query: >-
+          CHECKPOINT
+        db: "{{ pgd_cluster_database }}"
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Make sure {{ pg_data }}/backup exists
+      ansible.builtin.file:
+        path: "{{ pg_data }}/backup"
+        state: directory
+        owner: "{{ pg_owner }}"
+        group: "{{ pg_group }}"
+      become: true
+      when: inventory_hostname == 'pgd1'
+
+    - name: Take a backup
+      ansible.builtin.command:
+        cmd: >
+          /usr/edb/as{{ pg_version }}/bin/pg_dump -Fd -j 4 -f {{ pg_data }}/backup -d {{ pgd_cluster_database }}
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Create bdr extension
+      community.postgresql.postgresql_ext:
+        name: bdr
+        state: present
+        db: "{{ pgd_cluster_database }}"
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Create PGD node on pgd1
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT bdr.create_node(node_name := 'pgd1',
+                                 local_dsn := 'host=pgd1 dbname={{ pgd_cluster_database }} port={{ pg_port }} user={{ pg_user }}',
+                                 node_kind := 'data');
+        db: "{{ pgd_cluster_database }}"
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Create PGD group on pgd1
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT bdr.create_node_group(node_group_name := '{{ pgd_cluster_name }}',
+                                       join_node_group := TRUE);
+        db: "{{ pgd_cluster_database }}"
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Make pgd_cluster_database_owner db owner
+      community.postgresql.postgresql_db:
+        name: "{{ pgd_cluster_database }}"
+        owner: "{{ pgd_cluster_database_owner }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Grant role to users
+      community.postgresql.postgresql_membership:
+        group: bdr_superuser
+        user: "{{ item }}"
+        state: present
+      become: true
+      become_user: "{{ pg_owner }}"
+      loop:
+        - "{{ pgd_replication_user }}"
+        - "{{ pgd_cluster_database_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Make pgd_replication_user a superuser
+      community.postgresql.postgresql_user:
+        name: "{{ pgd_replication_user }}"
+        role_attr_flags: "replication,superuser"
+        port: "{{ pg_port }}"
+        db: "{{ pgd_cluster_database }}"
+        state: present
+        login_user: "{{ pg_owner }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Make pgd_cluster_database_owner a superuser
+      community.postgresql.postgresql_user:
+        name: "{{ pgd_cluster_database_owner }}"
+        role_attr_flags: "replication,superuser"
+        port: "{{ pg_port }}"
+        db: "{{ pgd_cluster_database }}"
+        state: present
+        login_user: "{{ pg_owner }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Store pgd_replication_user and pgd_cluster_database_owner password in pgpass
+      ansible.builtin.include_role:
+        name: manage_dbserver
+        tasks_from: manage_pgpass
+      vars:
+        pg_pgpass_values:
+          - user: "{{ pgd_replication_user }}"
+            password: "{{ pgd_replication_user_password }}"
+            create: true
+          - user: "{{ pgd_cluster_database_owner }}"
+            password: "{{ pgd_cluster_database_owner_password }}"
+            create: true
+
+    - name: Cleaning up Postgres file systems
+      ansible.builtin.shell: |
+        rm -rf {{ pg_data }}
+        rm -rf {{ pg_wal }}
+        mkdir {{ pg_wal }}
+        chown enterprisedb.enterprisedb {{ pg_wal }}
+        # Required by bdr_init_physical
+        chown enterprisedb.enterprisedb {{ pg_data | dirname }}
+      become: true
+      when: inventory_hostname in ['pgd2', 'pgd3']
+
+    - name: Start stats collection for PGD initialization
+      ansible.builtin.shell:
+        cmd: ts sysstat -o {{ ts_pgd_init }}
+      become: true
+      async: 1
+      poll: 0
+
+    - name: Building pgd2 and pgd3 with bdr_init_physical
+      ansible.builtin.shell: |
+        PGAPPNAME={{ inventory_hostname }} /usr/edb/as{{ pg_version }}/bin/bdr_init_physical -D {{ pg_data }} \
+                -l {{ pg_log }}/bdr_init_physical.log \
+                -n {{ inventory_hostname }} \
+                --node-group-name {{ pgd_cluster_name }} \
+                -d 'host=pgd1 port={{ pg_port }} dbname={{ pgd_cluster_database }} user={{ pgd_replication_user }}' \
+                --local-dsn='host={{ inventory_hostname }} port={{ pg_port }} dbname={{ pgd_cluster_database }} user={{ pg_user }}'
+      when: inventory_hostname in ['pgd2', 'pgd3']
+      become: true
+      become_user: "{{ pg_owner }}"
+
+    - name: Stop system statistics collection for PGD initialization
+      ansible.builtin.shell:
+        cmd: ts sysstat -o {{ ts_pgd_init }} -s
+      become: true
+
+    # Need to use pg_ctl here instead of operating system service because
+    # bdr_init_physical starts the database.
+    - name: Stop Postgres on pgd2 and pgd3 [2]
+      ansible.builtin.shell: |
+        /usr/edb/as{{ pg_version }}/bin/pg_ctl -D {{ pg_data }} stop
+      when: inventory_hostname in ['pgd2', 'pgd3']
+      become_user: "{{ pg_owner }}"
+
+    - name: Updating PGWAL location
+      ansible.builtin.shell: |
+        rm -rf {{ pg_wal }}/*
+        rsync -cavr {{ pg_data }}/pg_wal/* {{ pg_wal }}/.
+        rm -rf {{ pg_data }}/pg_wal/
+        ln -s {{ pg_wal }} {{ pg_data }}/pg_wal
+      become: true
+      when: inventory_hostname in ['pgd2', 'pgd3']
+
+    - name: Starting Postgres on pgd2 and pgd3
+      ansible.builtin.systemd:
+        name: "edb-as-{{ pg_version }}"
+        state: started
+        enabled: true
+      become: true
+      when: inventory_hostname in ['pgd2', 'pgd3']
+
+    - name: Process pidstat data
+      ansible.builtin.shell:
+        cmd: ts process-pidstat -i {{ item }}/pidstat.txt
+      loop:
+        - "{{ ts_load }}"
+        - "{{ ts_pgd_init }}"
+      become: true
+
+    - name: Plot sar data
+      ansible.builtin.shell:
+        cmd: ts plot-sar -i {{ item }}/sar
+      loop:
+        - "{{ ts_load }}"
+        - "{{ ts_pgd_init }}"
+      become: true
+
+    - name: Plot pidstat data
+      ansible.builtin.shell:
+        cmd: ts plot-pidstat -i {{ item }}/pidstat.csv -o {{ item }}/pidstat
+      loop:
+        - "{{ ts_load }}"
+        - "{{ ts_pgd_init }}"
+      become: true
+
+    - name: Fetch system statistics
+      ansible.posix.synchronize:
+        mode: pull
+        src: "{{ item }}"
+        dest: "{{ results_directory }}/{{ inventory_hostname }}/"
+      loop:
+        - "{{ ts_load }}"
+        - "{{ ts_pgd_init }}"
+      become: true
