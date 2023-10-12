@@ -1,9 +1,9 @@
 # The following template assumes postgres instances within AWS and
 #   have additional attached storage devices based on the pg_instance_type provided
-cluster_name: pgbench-pgd-camo
+cluster_name: pgbench-pgd-group-commit
 aws:
   tags:
-    cluster_name: pgbench-pgd-camo
+    cluster_name: pgbench-pgd-group-commit
     created_by: edb-benchmarks
   images:
     postgres:

@@ -17,6 +17,7 @@ pg_ssh_user: rocky
 #pg_storage_iops: 64000
 pgdata_storage_type: io2
 pgdata_storage_size: 4096
+# if r5b.2xlarge then iops 21667
 pgdata_storage_iops: 130000
 pgwal_storage_type: io2
 pgwal_storage_size: 1024
