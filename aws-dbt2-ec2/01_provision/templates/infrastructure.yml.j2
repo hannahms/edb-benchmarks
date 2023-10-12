@@ -56,3 +56,111 @@ aws:
         size_gb: {{ pg_storage_size }}
         iops: {{ pg_storage_iops }}
         encrypted: false
+      additional_volumes:
+        - mount_point: {{ pg_data}}
+          type: gp3
+          size_gb: 1000
+          iops: 16000
+          encrypted: false
+        - mount_point: {{ pg_wal }}
+          type: gp3
+          size_gb: 1000
+          iops: 16000
+          encrypted: false
+{% if tablespaces %}
+        - mount_point: {{ dbt2tsdir }}/warehouse
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/district
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/customer
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/history
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/new_order
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/orders
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/order_line
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/item
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/stock
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/index1
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/index2
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/pk_customer
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/pk_district
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/pk_item
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/pk_new_order
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/pk_order_line
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/pk_orders
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/pk_stock
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt2tsdir }}/pk_warehouse
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+{% endif %}

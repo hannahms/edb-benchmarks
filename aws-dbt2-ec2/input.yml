@@ -18,4 +18,6 @@ dbt2_warehouse: 3600
 dbt2_connections: 72
 dbt2_rampup: 45
 
+dbt2tsdir: /t
+
 cloud_service_provider: aws

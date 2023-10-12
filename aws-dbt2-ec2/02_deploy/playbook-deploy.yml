@@ -71,6 +71,7 @@
         pg_shared_libraries_list: []
 
   roles:
+    - manage_operating_system
     - install_dbserver
     - init_dbserver
     - manage_dbserver

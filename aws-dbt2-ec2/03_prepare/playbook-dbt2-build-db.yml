@@ -1,6 +1,6 @@
 ---
 - hosts: primary
-  name: Populate DBT2 database
+  name: Populate DBT-2 database
   become: true
   gather_facts: true
 
@@ -8,9 +8,21 @@
     - edb_devops.edb_postgres
 
   tasks:
-    - name: Populate DBT2 database
+    - name: Set tablespace permissions on the filesystem
+      ansible.builtin.file:
+        path: "{{ dbt2tsdir }}"
+        state: directory
+        owner: "{{ pg_owner }}"
+        group: "{{ pg_group }}"
+        recurse: yes
+      when: tablespaces
+
+    - name: Build DBT-2 database
       ansible.builtin.command:
-        cmd: dbt2 build --db-port {{ pg_port }} -w {{ dbt2_warehouse }} pgsql
+        cmd: >-
+          dbt2 build --db-port={{ pg_port }} --warehouses={{ dbt2_warehouse }}
+          {% if tablespaces %}--tablespaces={{ dbt2tsdir }}{% endif %}
+          pgsql
       become_user: "{{ pg_owner }}"
       changed_when: false
       register: result
