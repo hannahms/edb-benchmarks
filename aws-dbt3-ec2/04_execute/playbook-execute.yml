@@ -1,0 +1,84 @@
+---
+- hosts: primary
+  name: Run DBT-3
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Load servers.yml
+      ansible.builtin.include_vars:
+        file: "{{ terraform_project_path }}/servers.yml"
+        name: infra
+
+    - name: Load infrastructure.yml
+      ansible.builtin.include_vars:
+        file: "../infrastructure.yml"
+        name: structure
+
+    - name: Make sure DBT-3 target results directory do not exist
+      ansible.builtin.file:
+        path: "/tmp/dbt3-data"
+        state: absent
+      become: true
+      loop:
+
+    - name: Drop database
+      ansible.builtin.command:
+        cmd: psql -c "DROP DATABASE IF EXISTS dbt3"
+      become: true
+      become_user: "{{ pg_owner }}"
+
+    - name: Create database
+      ansible.builtin.command:
+        cmd: createdb dbt3
+      become: true
+      become_user: "{{ pg_owner }}"
+
+    - name: Execute dbt3-run-workload
+      ansible.builtin.command:
+        cmd: >-
+          dbt3 run
+          --scale-factor={{ dbt3_scale_factor }}
+          --explain
+          --stats
+          --tpchtools="{{ pg_user_home }}/TPC-H V3.0.1"
+          --comment="AWS EC2 PostgreSQL
+          {{ structure.aws.machines["postgres1"].instance_type }} |
+          {{ structure.aws.machines["postgres1"].volume.size_gb }} GB
+          {{ structure.aws.machines["postgres1"].volume.type }} |
+          {{ structure.aws.machines["postgres1"].volume.iops }} IOPS"
+          pgsql
+          /tmp/dbt3-data
+      become: true
+      become_user: "{{ pg_owner }}"
+      changed_when: false
+      register: result
+
+    - name: Workload execution output
+      ansible.builtin.debug:
+        var: result
+
+    - name: Generate DBT-3 report
+      ansible.builtin.command:
+        cmd: dbt3 report /tmp/dbt3-data
+      become: true
+      become_user: "{{ pg_owner }}"
+      changed_when: false
+      register: result
+
+    - name: Report generation output
+      ansible.builtin.debug:
+        var: result
+
+    - name: Fetch DBT-3 results
+      ansible.posix.synchronize:
+        mode: pull
+        src: "/tmp/dbt3-data"
+        dest: "{{ results_directory }}/"
+      become: true
+
+    - name: Save system details
+      ansible.builtin.include_role:
+        name: get-system-details
