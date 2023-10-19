@@ -1,6 +1,8 @@
 ---
 - hosts: primary
   name: Execute CAMO Test
+  gather_facts: true
+  any_errors_fatal: true
 
   tasks:
     - name: Load servers.yml
@@ -32,18 +34,19 @@
     - name: Start database statistics collection - CAMO
       ansible.builtin.shell:
         cmd: >-
-          ts pgsql-stat --dbname={{ pgd_cluster_database }}
-          --host={{ pg_login_unix_socket }} --port={{ pg_port }}
-          -o {{ ts_dbstat }}
+          ts pgsql-stat --dbname={{ pgd_cluster_database }} \
+            --host={{ pg_login_unix_socket }} --port={{ pg_port }} \
+            -o {{ ts_dbstat }}
       become: true
       become_user: "{{ pg_owner }}"
       async: 1
       poll: 0
 
-    - name: Wait for Postgres to be ready
+    - name: Wait for Postgres to be ready - CAMO
       ansible.builtin.command:
-        cmd: >
-          /usr/edb/as{{ pg_version }}/pg_isready
+        cmd: >-
+          /usr/edb/as{{ pg_version }}/bin/pg_isready -d {{ pgd_cluster_database }} -h {{ pg_login_unix_socket }}
+          -p {{ pg_port }}
       become: true
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
@@ -55,8 +58,8 @@
     - name: Run pgd_bench on pgd1
       ansible.builtin.shell:
         cmd: >-
-          /usr/edb/as{{ pg_version }}/bin/pgd_bench --mode=camo -h {{ pg_login_unix_socket }} -p {{ pg_port }}
-            -T {{ pgbench_duration }} -j 10 -c {{ pgbench_clients }} {{ pgd_cluster_database }}
+          /usr/edb/as{{ pg_version }}/bin/pgd_bench --mode=camo -h {{ pg_login_unix_socket }} -p {{ pg_port }} \
+            -p {{ pg_port }} -T {{ pgbench_duration }} -j 10 -c {{ pgbench_clients }} -n {{ pgd_cluster_database }} \
             'host=pgd2 user={{ pg_owner }} port={{ pg_port }} dbname={{ pgd_cluster_database }}'
       become: true
       become_user: "{{ pg_owner }}"
@@ -109,22 +112,45 @@
       become: true
       become_user: "{{ pg_owner }}"
 
+    - name: Set baseline_save_dir
+      ansible.builtin.set_fact:
+        camo_save_dir: "{{ results_directory }}/camo/{{ inventory_hostname }}"
+
+    - name: Make sure camo results directory exists
+      local_action:
+        module: ansible.builtin.file
+        path: "{{ camo_save_dir }}"
+        state: directory
+
     - name: Fetch system and database statistics - CAMO
       ansible.posix.synchronize:
         mode: pull
         src: "{{ item }}"
-        dest: "{{ results_directory }}/camo/{{ inventory_hostname }}/"
+        dest: "{{ camo_save_dir }}/"
       loop:
         - "{{ ts_sysstat }}"
         - "{{ ts_dbstat }}"
       become: true
 
-    - name: Fetch baseline pgd_bench result output
-      ansible.posix.synchronize:
-        mode: pull
-        src: "{{ item }}"
-        dest: "{{ results_directory }}/camo/{{ inventory_hostname }}/"
-      loop:
-        - "/tmp/pgd_bench_camo_result.txt"
+    - name: Fetch camo pgd_bench result output
+      ansible.builtin.fetch:
+        src: "/tmp/pgd_bench_camo_result.txt"
+        dest: "{{ camo_save_dir }}/pgd_bench_camo_result.txt"
+        flat: true
       become: true
       when: inventory_hostname == 'pgd1'
+
+    - name: Fetch CAMO postgres logs
+      ansible.builtin.fetch:
+        src: "{{ pg_log }}/{{ pg_log_filename }}"
+        dest: "{{ camo_save_dir }}/{{ pg_log_filename }}"
+        flat: true
+      become: true
+
+    - name: Fetch bdr_init_physical logs from pgd2 and pgd3
+      ansible.builtin.fetch:
+        src: "{{ pg_log }}/bdr_init_physical.log"
+        dest: "{{ camo_save_dir }}/bdr_init_physical.log"
+        flat: true
+      become: true
+      when: inventory_hostname in ['pgd2', 'pgd3']

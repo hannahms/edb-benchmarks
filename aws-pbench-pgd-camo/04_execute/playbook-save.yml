@@ -9,4 +9,4 @@
   tasks:
     - name: Save system details
       ansible.builtin.include_role:
-        name: get-system-detail
+        name: get-system-details

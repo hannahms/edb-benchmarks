@@ -3,6 +3,7 @@
   name: Destroy, create, load, and reconstruct the distributed database
   become: true
   gather_facts: true
+  any_errors_fatal: true
 
   collections:
     - edb_devops.edb_postgres
@@ -56,7 +57,7 @@
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
 
-    - name: "DROP {{ pgd_cluster_database }} database"
+    - name: DROP database {{ pgd_cluster_database }}
       community.postgresql.postgresql_db:
         maintenance_db: postgres
         state: absent
@@ -145,8 +146,9 @@
 
     - name: Take a backup
       ansible.builtin.command:
-        cmd: >
-          /usr/edb/as{{ pg_version }}/bin/pg_dump -Fd -j 4 -f {{ pg_data }}/backup -d {{ pgd_cluster_database }}
+        cmd: >-
+          /usr/edb/as{{ pg_version }}/bin/pg_dump -Fd -j 4 -f {{ pg_data }}/backup
+          -d {{ pgd_cluster_database }} -h {{ pg_login_unix_socket }} -p {{ pg_port }}
       become: true
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
@@ -190,26 +192,6 @@
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
 
-    - name: Make pgd_cluster_database_owner db owner
-      community.postgresql.postgresql_db:
-        name: "{{ pgd_cluster_database }}"
-        owner: "{{ pgd_cluster_database_owner }}"
-      become: true
-      become_user: "{{ pg_owner }}"
-      when: inventory_hostname == 'pgd1'
-
-    - name: Grant role to users
-      community.postgresql.postgresql_membership:
-        group: bdr_superuser
-        user: "{{ item }}"
-        state: present
-      become: true
-      become_user: "{{ pg_owner }}"
-      loop:
-        - "{{ pgd_replication_user }}"
-        - "{{ pgd_cluster_database_owner }}"
-      when: inventory_hostname == 'pgd1'
-
     - name: Make pgd_replication_user a superuser
       community.postgresql.postgresql_user:
         name: "{{ pgd_replication_user }}"
@@ -234,6 +216,36 @@
         login_unix_socket: "{{ pg_login_unix_socket }}"
       become: true
       become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Grant pgd_replication_user privileges
+      community.postgresql.postgresql_privs:
+        type: database
+        state: present
+        privs: CREATE
+        roles: "{{ pgd_replication_user }}"
+        db: "{{ pgd_cluster_database }}"
+        port: "{{ pg_port }}"
+        login_user: "{{ pg_owner }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Grant pgd_replication_user and pgd_cluster_database_owner membership to bdr_superuser
+      community.postgresql.postgresql_membership:
+        group: "bdr_superuser"
+        target_role: "{{ item }}"
+        db: "{{ pgd_cluster_database }}"
+        state: present
+        port: "{{ pg_port }}"
+        login_user: "{{ pg_owner }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      loop:
+        - "{{ pgd_replication_user }}"
+        - "{{ pgd_cluster_database_owner }}"
       when: inventory_hostname == 'pgd1'
 
     - name: Store pgd_replication_user and pgd_cluster_database_owner password in pgpass
@@ -290,6 +302,7 @@
       ansible.builtin.shell: |
         /usr/edb/as{{ pg_version }}/bin/pg_ctl -D {{ pg_data }} stop
       when: inventory_hostname in ['pgd2', 'pgd3']
+      become: true
       become_user: "{{ pg_owner }}"
 
     - name: Updating PGWAL location

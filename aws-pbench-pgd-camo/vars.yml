@@ -29,14 +29,18 @@ pg_superuser_password: "9password123"
 # want to be at least as large as max_connections
 # max_connections set in playbook-deploy
 max_prepared_transactions: 200
-
 camo_subgroup: "camo_pair_subgroup"
 camo_cs_rule: "ALL ( camo_pair_subgroup ) ON visible CAMO DEGRADE ON (timeout=500s) TO ASYNC"
 
-# pgbench vars
+# pgbench vars - prod environment
 pgbench_scale_factor: 20000
 pgbench_duration: 1200
 pgbench_clients: 50
+
+# test environment values
+#pgbench_scale_factor: 500
+#pgbench_duration: 600
+#pgbench_clients: 50
 
 # Touchstone Tools save locations
 ts_load: "/tmp/sysstat-load"
