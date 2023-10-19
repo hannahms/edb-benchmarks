@@ -38,7 +38,7 @@
 
     - name: Execute dbt7-run-workload
       ansible.builtin.command:
-        cmd: 
+        cmd: >-
           dbt7 run
           --scale-factor={{ dbt7_scale_factor }}
           --stats
