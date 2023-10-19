@@ -1,0 +1,41 @@
+---
+# lowercase ansible variables will be mapped to UPPERCASE bash environment variables
+# these will be used as defaults in the case of empty inputs
+# credentials with <secret> will not be saved with a default and instead will only look at the environment
+bucket_name: "ebac-reports"
+benchmark_name: "aws-pgbench-pgd-camo"
+ansible_verbosity: 0
+region: us-east-1
+zone0: us-east-1b
+# smallest instance with no network burst performance
+pg_instance_type: r5b.4xlarge
+pg_image_name: Rocky-8-ec2-8.6-20220515.0.x86_64
+pg_image_owner: 679593333241
+pg_ssh_user: rocky
+#pg_storage_type: io2-block-express
+#pg_storage_properties: io2-block-express
+#pg_storage_size: 4096
+#pg_storage_iops: 64000
+pgdata_storage_type: io2
+pgdata_storage_size: 4096
+pgdata_storage_iops: 43333
+# pgdata_storage_iops: 130000 - should be 86667 maybe switch to gp3
+pgwal_storage_type: io2
+pgwal_storage_size: 1024
+pgwal_storage_iops: 43333
+# pgwal_storage_iops: 130000 - should be 86667 maybe switch to gp3
+
+# pgbench vars - prod environment
+pgbench_scale_factor: 20000
+pgbench_duration: 1200
+pgbench_clients: 50
+
+# test environment values
+#pgbench_scale_factor: 500
+#pgbench_duration: 600
+#pgbench_clients: 50
+
+cloud_service_provider: aws
+
+# Credentials
+repo_token: <secret>

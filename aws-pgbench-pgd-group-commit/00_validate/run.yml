@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  name: Generate variable file
+  gather_facts: false
+
+  tasks:
+    - name: Create initial
+      include_role:
+        name: benchmark-steps
+        tasks_from: 00_validate.yml

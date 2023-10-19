@@ -1,0 +1,33 @@
+---
+- hosts: primary
+  name: Set bdr.default_streaming_mode = 'off'
+  gather_facts: true
+  any_errors_fatal: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Set bdr.default_streaming_mode to 'off'
+      community.postgresql.postgresql_query:
+        query: >-
+          ALTER SYSTEM SET bdr.default_streaming_mode TO 'off'
+        login_user: "{{ pg_user }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        port: "{{ pg_port }}"
+        db: "{{ pgd_cluster_database }}"
+        autocommit: true
+      become: true
+      become_user: "{{ pg_owner }}"
+
+    - name: Reload Postgres configuration
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT pg_reload_conf()
+        login_user: "{{ pg_user }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        port: "{{ pg_port }}"
+        db: "{{ pgd_cluster_database }}"
+        autocommit: true
+      become: true
+      become_user: "{{ pg_owner }}"

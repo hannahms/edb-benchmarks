@@ -1,0 +1,151 @@
+---
+- hosts: primary
+  name: Execute Baseline Test
+  gather_facts: true
+  any_errors_fatal: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Load servers.yml
+      ansible.builtin.include_vars:
+        file: "{{ terraform_project_path }}/servers.yml"
+        name: infra
+
+    - name: Load infrastructure.yml
+      ansible.builtin.include_vars:
+        file: "../infrastructure.yml"
+        name: structure
+
+    - name: Clear any previously saved touchstone data - baseline
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ ts_dbstat }}"
+        - "{{ ts_sysstat }}"
+      become: true
+
+    - name: Start system stats collection - baseline
+      ansible.builtin.command:
+        cmd: ts sysstat -o {{ ts_sysstat }}
+      become: true
+      async: 1
+      poll: 0
+
+    - name: Start database statistics collection - baseline
+      ansible.builtin.shell:
+        cmd: >-
+          ts pgsql-stat --dbname={{ pgd_cluster_database }} \
+            --host={{ pg_login_unix_socket }} --port={{ pg_port }} \
+            -o {{ ts_dbstat }}
+      become: true
+      become_user: "{{ pg_owner }}"
+      async: 1
+      poll: 0
+
+    - name: Wait for Postgres to be ready - baseline
+      ansible.builtin.command:
+        cmd: >-
+          /usr/edb/as{{ pg_version }}/bin/pg_isready -d {{ pgd_cluster_database }} -h {{ pg_login_unix_socket }}
+          -p {{ pg_port }}
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+      register: pg_isready
+      until: "pg_isready is not failed"
+      retries: 10
+      delay: 10
+
+    - name: Run pgd_bench on pgd1 - baseline
+      ansible.builtin.shell:
+        cmd: >-
+          /usr/edb/as{{ pg_version }}/bin/pgd_bench -h {{ pg_login_unix_socket }} -p {{ pg_port }} \
+            -T {{ pgbench_duration }} -j 10 -c {{ pgbench_clients }} {{ pgd_cluster_database }}
+      become: true
+      become_user: "{{ pg_owner }}"
+      register: baseline_result
+      when: inventory_hostname == 'pgd1'
+
+    - name: Debug baseline_result
+      ansible.builtin.debug:
+        var: baseline_result
+      when: inventory_hostname == 'pgd1'
+
+    - name: Create /tmp/pgd_bench_baseline_result.txt
+      ansible.builtin.copy:
+        content: "{{ baseline_result }}"
+        dest: "/tmp/pgd_bench_baseline_result.txt"
+        mode: "0755"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Stop database statistics collection - baseline
+      ansible.builtin.shell:
+        cmd: ts pgsql-stat -o {{ ts_dbstat }} -s
+      become: true
+      become_user: "{{ pg_owner }}"
+
+    - name: Stop system stats collection - baseline
+      ansible.builtin.command:
+        cmd: ts sysstat -o {{ ts_sysstat }} -s
+      become: true
+
+    - name: Process pidstat data - baseline
+      ansible.builtin.shell:
+        cmd: ts process-pidstat -i {{ ts_sysstat }}/pidstat.txt
+      become: true
+
+    - name: Plot sar data - baseline
+      ansible.builtin.shell:
+        cmd: ts plot-sar -i {{ ts_sysstat }}/sar
+      become: true
+
+    - name: Plot pidstat data - baseline
+      ansible.builtin.shell:
+        cmd: ts plot-pidstat -i {{ item }}/pidstat.csv -o {{ item }}/pidstat
+      loop:
+        - "{{ ts_sysstat }}"
+      become: true
+
+    - name: Plot database data - baseline
+      ansible.builtin.shell:
+        cmd: ts plot-pgsql -i {{ ts_dbstat }} -d {{ pgd_cluster_database }}
+      become: true
+      become_user: "{{ pg_owner }}"
+
+    - name: Set baseline_save_dir
+      ansible.builtin.set_fact:
+        baseline_save_dir: "{{ results_directory }}/baseline/{{ inventory_hostname }}"
+
+    - name: Make sure baseline results directory exists
+      local_action:
+        module: ansible.builtin.file
+        path: "{{ baseline_save_dir }}"
+        state: directory
+
+    - name: Fetch system and database statistics - baseline
+      ansible.posix.synchronize:
+        mode: pull
+        src: "{{ item }}"
+        dest: "{{ baseline_save_dir }}/"
+      loop:
+        - "{{ ts_sysstat }}"
+        - "{{ ts_dbstat }}"
+      become: true
+
+    - name: Fetch baseline pgd_bench result output on pgd1
+      ansible.builtin.fetch:
+        src: "/tmp/pgd_bench_baseline_result.txt"
+        dest: "{{ baseline_save_dir }}/pgd_bench_baseline_result.txt"
+        flat: true
+      become: true
+      when: inventory_hostname == 'pgd1'
+
+    - name: Fetch bdr_init_physical logs from pgd2 and pgd3 - baseline
+      ansible.builtin.fetch:
+        src: "{{ pg_log }}/bdr_init_physical.log"
+        dest: "{{ baseline_save_dir }}/bdr_init_physical.log"
+        flat: true
+      become: true
+      when: inventory_hostname in ['pgd2', 'pgd3']

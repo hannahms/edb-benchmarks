@@ -1,0 +1,16 @@
+---
+disable_logging: false
+cluster_name: pgbench-pgd-group-commit
+pg_data: /pgdata/data
+pg_wal: /pgwal/wal
+pg_type: EPAS
+pg_port: 5444
+pg_version: 15
+pg_owner: enterprisedb
+pg_user: enterprisedb
+pg_group: enterprisedb
+
+# pgbench vars
+pgbench_scale_factor: 20000
+pgbench_duration: 1200
+pgbench_clients: 50

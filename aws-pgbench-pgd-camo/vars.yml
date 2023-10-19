@@ -1,0 +1,49 @@
+---
+disable_logging: false
+cluster_name: pgbench-pgd-camo
+pg_data: "/pgdata/data"
+pg_wal: "/pgwal/wal"
+pg_type: "EPAS"
+pg_port: 5444
+pg_version: 15
+pg_owner: "enterprisedb"
+pg_user: "enterprisedb"
+pg_group: "enterprisedb"
+pg_log: "/var/log/edb"
+pg_log_filename: "postgresql.log"
+enable_edb_repo: true
+pg_login_unix_socket: "/var/run/edb/as15"
+pg_ssl: false
+
+# pgd vars
+pgd_version: 5
+install_pgd: true
+pgd_cluster_name: "pgd_cluster"
+pgd_cluster_database: "pgdbench"
+pgd_cluster_database_owner: "enterprisedb"
+pgd_cluster_database_owner_password: "9password123"
+pgd_replication_user: "pgd_replication_user"
+pgd_replication_user_password: "9password123"
+pg_superuser_password: "9password123"
+
+# want to be at least as large as max_connections
+# max_connections set in playbook-deploy
+max_prepared_transactions: 200
+camo_subgroup: "camo_pair_subgroup"
+camo_cs_rule: "ALL ( camo_pair_subgroup ) ON visible CAMO DEGRADE ON (timeout=500s) TO ASYNC"
+
+# pgbench vars - prod environment
+pgbench_scale_factor: 20000
+pgbench_duration: 1200
+pgbench_clients: 50
+
+# test environment values
+#pgbench_scale_factor: 500
+#pgbench_duration: 600
+#pgbench_clients: 50
+
+# Touchstone Tools save locations
+ts_load: "/tmp/sysstat-load"
+ts_pgd_init: "/tmp/sysstat-pgd-init"
+ts_dbstat: "/tmp/sysstat"
+ts_sysstat: "/tmp/dbstat"

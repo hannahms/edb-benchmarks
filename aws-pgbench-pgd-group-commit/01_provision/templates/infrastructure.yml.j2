@@ -1,0 +1,101 @@
+# The following template assumes postgres instances within AWS and
+#   have additional attached storage devices based on the pg_instance_type provided
+cluster_name: pgbench-pgd-group-commit
+aws:
+  tags:
+    cluster_name: pgbench-pgd-group-commit
+    created_by: edb-benchmarks
+  images:
+    postgres:
+      name: {{ pg_image_name }}
+      owner: {{ pg_image_owner }}
+      ssh_user: {{ pg_ssh_user }}
+  regions:
+    {{ region }}:
+      cidr_block: 10.0.0.0/16
+      zones:
+        {{ zone0 }}: 10.0.0.0/24
+      service_ports:
+        - port: 22
+          protocol: tcp
+          description: "SSH"
+        - port: 5432
+          protocol: tcp
+          description: "PostgreSQL"
+        - port: 5444
+          protocol: tcp
+          description: "EPAS"
+
+  machines:
+    pgd1:
+      image_name: postgres
+      tags:
+        type: pgd
+        index: 0
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: gp3
+        size_gb: 1000
+        iops: 3000
+        encrypted: false
+      additional_volumes:
+        - mount_point: /pgdata
+          size_gb: {{ pgdata_storage_size }}
+          type: {{ pgdata_storage_type }}
+          iops: {{ pgdata_storage_iops }}
+          encrypted: false
+        - mount_point: /pgwal
+          size_gb: {{ pgwal_storage_size }}
+          type: {{ pgwal_storage_type }}
+          iops: {{ pgwal_storage_iops }}
+          encrypted: false
+    pgd2:
+      image_name: postgres
+      tags:
+        type: pgd
+        index: 1
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: gp3
+        size_gb: 1000
+        iops: 3000
+        encrypted: false
+      additional_volumes:
+        - mount_point: /pgdata
+          size_gb: {{ pgdata_storage_size }}
+          type: {{ pgdata_storage_type }}
+          iops: {{ pgdata_storage_iops }}
+          encrypted: false
+        - mount_point: /pgwal
+          size_gb: {{ pgwal_storage_size }}
+          type: {{ pgwal_storage_type }}
+          iops: {{ pgwal_storage_iops }}
+          encrypted: false
+    pgd3:
+      image_name: postgres
+      tags:
+        type: pgd
+        index: 2
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: gp3
+        size_gb: 1000
+        iops: 3000
+        encrypted: false
+      additional_volumes:
+        - mount_point: /pgdata
+          size_gb: {{ pgdata_storage_size }}
+          type: {{ pgdata_storage_type }}
+          iops: {{ pgdata_storage_iops }}
+          encrypted: false
+        - mount_point: /pgwal
+          size_gb: {{ pgwal_storage_size }}
+          type: {{ pgwal_storage_type }}
+          iops: {{ pgwal_storage_iops }}
+          encrypted: false
