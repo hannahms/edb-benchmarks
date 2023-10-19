@@ -4,6 +4,9 @@
   gather_facts: true
   any_errors_fatal: true
 
+  collections:
+    - edb_devops.edb_postgres
+
   tasks:
     - name: Load servers.yml
       ansible.builtin.include_vars:
@@ -131,20 +134,13 @@
         - "{{ ts_dbstat }}"
       become: true
 
-    - name: Fetch baseline pgd_bench result output
+    - name: Fetch baseline pgd_bench result output on pgd1
       ansible.builtin.fetch:
         src: "/tmp/pgd_bench_baseline_result.txt"
         dest: "{{ baseline_save_dir }}/pgd_bench_baseline_result.txt"
         flat: true
       become: true
       when: inventory_hostname == 'pgd1'
-
-    - name: Fetch baseline postgres logs
-      ansible.builtin.fetch:
-        src: "{{ pg_log }}/{{ pg_log_filename }}"
-        dest: "{{ baseline_save_dir }}/{{ pg_log_filename }}"
-        flat: true
-      become: true
 
     - name: Fetch bdr_init_physical logs from pgd2 and pgd3
       ansible.builtin.fetch:

@@ -4,6 +4,9 @@
   gather_facts: true
   any_errors_fatal: true
 
+  collections:
+    - edb_devops.edb_postgres
+
   tasks:
     - name: Remove PGD nodes
       community.postgresql.postgresql_query:
@@ -73,7 +76,7 @@
     - name: Run pg_ctl logrotate
       ansible.builtin.command:
         cmd: >-
-          /usr/edb/as{{ pg_version }}/bin/pg_ctl logrotate -D {{ pg_data }}
+          /usr/edb/as{{ pg_version }}/bin/pg_ctl -D {{ pg_data }} logrotate
       become: true
       become_user: "{{ pg_owner }}"
 

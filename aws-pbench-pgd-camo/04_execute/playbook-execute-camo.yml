@@ -4,6 +4,9 @@
   gather_facts: true
   any_errors_fatal: true
 
+  collections:
+    - edb_devops.edb_postgres
+
   tasks:
     - name: Load servers.yml
       ansible.builtin.include_vars:
