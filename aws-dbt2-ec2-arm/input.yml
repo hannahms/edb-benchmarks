@@ -1,24 +1,22 @@
-# lowercase anible variables will be mapped to UPPERCASE bash environment variables
+# lowercase ansible variables will be mapped to UPPERCASE bash environment variables
 # these will be used as defaults in the case of empty inputs
 # credentials with <secret> will not be saved with a default and instead will only look at the environment
-bucket_name: ""
+bucket_name: ebac-reports
+benchmark_name: AWS_DBT2_EC2_ARM
 ansible_verbosity: 0
 region: us-east-1
 zone0: us-east-1b
-driver_instance_type: c5.9xlarge
-pg_instance_type: r5.8xlarge
+#driver_instance_type: c5.9xlarge
+driver_instance_type: c6i.8xlarge
+pg_instance_type: r7g.8xlarge
 pg_storage_type: io2
 pg_storage_size: 4096
 pg_storage_iops: 64000
-pg_image_name: Rocky-8-ec2-8.6-20220515.0.x86_64
+pg_image_name: Rocky-9-EC2-Base-9.2-20230513.0.aarch64
+#pg_image_name: Rocky-8-EC2-Base-8.8-20230518.0.aarch64
 pg_image_owner: 679593333241
 pg_ssh_user: rocky
-
 dbt2_duration: 3600
 dbt2_warehouse: 10000
 dbt2_connections: 72
 dbt2_rampup: 45
-
-dbt2tsdir: /t
-
-cloud_service_provider: aws

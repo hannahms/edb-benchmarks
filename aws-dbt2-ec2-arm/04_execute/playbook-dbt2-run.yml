@@ -56,7 +56,6 @@
           {{ structure.aws.machines["postgres1"].volume.type }} |
           {{ structure.aws.machines["postgres1"].volume.iops }} IOPS | driver
           {{ structure.aws.machines["dbt2-driver"].instance_type }}"
-          --stats
           pgsql
           /tmp/dbt2-data
       environment:
@@ -83,21 +82,12 @@
       ansible.builtin.debug:
         var: result
 
-    - name: Fetch DBT-2 results
-      ansible.posix.synchronize:
-        mode: pull
-        src: "/tmp/dbt2-data"
-        dest: "{{ results_directory }}/"
-      become: true
+    - name: Create data archive
+      ansible.builtin.command:
+        cmd: tar cvzf /tmp/dbt2-data.tar.gz /tmp/dbt2-data
 
-- hosts: all
-  name: Save system details
-  gather_facts: true
-
-  collections:
-    - edb_devops.edb_postgres
-
-  tasks:
-    - name: Save system details
-      ansible.builtin.include_role:
-        name: get-system-details
+    - name: Fetch DBT2 data files
+      ansible.builtin.fetch:
+        src: "/tmp/dbt2-data.tar.gz"
+        dest: "{{ results_directory }}/dbt2-data.tar.gz"
+        flat: true

@@ -62,18 +62,10 @@
   collections:
     - edb_devops.edb_postgres
 
-  pre_tasks:
-    - name: Initialize the user defined variables
-      set_fact:
-        disable_logging: false
-
-        # Tempory dirty hack.
-        pg_shared_libraries_list: []
-
   roles:
-    - manage_operating_system
     - install_dbserver
     - init_dbserver
+    - tuning
     - manage_dbserver
     - setup_dbt2
     - setup_touchstone_tools

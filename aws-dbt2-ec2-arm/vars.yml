@@ -8,7 +8,4 @@ pg_password: "1234567890zyxu"
 pg_superuser: "postgres"
 pg_user_home: "/var/lib/pgsql"
 pg_version: 14
-
-pg_data: "/opt/pgdata"
-pg_wal: "/opt/pgwal"
-tablespaces: false
+pg_ssl: false
