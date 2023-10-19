@@ -51,6 +51,9 @@
           {% if tablespaces %}--tablespaces={{ dbt7tsdir }}{% endif %}
           pgsql
           /tmp/dbt7-data
+      environment:
+        DBT7DMPREFIX: "LOAD 'auto_explain'; SET auto_explain.log_min_duration TO 0; SET auto_explain.log_level TO notice;"
+        PGDATABASE: "dbt7"
       become: true
       become_user: "{{ pg_owner }}"
       changed_when: false
