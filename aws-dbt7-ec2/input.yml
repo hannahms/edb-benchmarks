@@ -15,6 +15,7 @@ pg_image_owner: 679593333241
 pg_ssh_user: rocky
 
 dbt7_scale_factor: 1
+dbt7tsdir: /t
 
 tpcdsfile: ""
 
