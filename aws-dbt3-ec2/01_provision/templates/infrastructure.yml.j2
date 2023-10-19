@@ -46,3 +46,135 @@ aws:
           size_gb: 1000
           iops: 16000
           encrypted: false
+{% if tablespaces %}
+        - mount_point: {{ dbt3tsdir}}/supplier
+          type: gp3
+          size_gb: 1000
+          iops: 16000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/part
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/partsupp
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/customer
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/orders
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/lineitem
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/nation
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/region
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/pk_supplier
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/pk_part
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/pk_partsupp
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/pk_customer
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/pk_orders
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/pk_lineitem
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/pk_nation
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/pk_region
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/supplier_s_suppkey_idx_like
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/partsupp_ps_suppkey_idx
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/customer_c_nationkey_c_custkey_idx
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/orders_o_custkey_idx
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/orders_o_orderdate_idx
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/lineitem_l_orderkey_idx_l_returnflag
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/lineitem_l_orderkey_idx_part2
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/lineitem_l_orderkey_l_suppkey_idx
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/lineitem_l_shipdate_idx
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt3tsdir}}/lineitem_l_receiptdate_idx
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+{% endif %}

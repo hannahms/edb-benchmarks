@@ -49,6 +49,7 @@
           {{ structure.aws.machines["postgres1"].volume.size_gb }} GB
           {{ structure.aws.machines["postgres1"].volume.type }} |
           {{ structure.aws.machines["postgres1"].volume.iops }} IOPS"
+          {% if tablespaces %}--tablespaces={{ dbt3tsdir }}{% endif %}
           pgsql
           /tmp/dbt3-data
       become: true
