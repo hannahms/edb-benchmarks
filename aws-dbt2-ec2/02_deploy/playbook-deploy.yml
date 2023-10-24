@@ -77,3 +77,13 @@
     - manage_dbserver
     - setup_dbt2
     - setup_touchstone_tools
+
+  tasks:
+    - name: Set tablespace permissions on the filesystem
+      ansible.builtin.file:
+        path: "{{ dbt2tsdir }}"
+        state: directory
+        owner: "{{ pg_owner }}"
+        group: "{{ pg_group }}"
+        recurse: yes
+      when: tablespaces

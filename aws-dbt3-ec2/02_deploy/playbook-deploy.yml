@@ -35,3 +35,13 @@
     - init_dbserver
     - manage_dbserver
     - setup_dbt3
+
+  tasks:
+    - name: Set tablespace permissions on the filesystem
+      ansible.builtin.file:
+        path: "{{ dbt3tsdir }}"
+        state: directory
+        owner: "{{ pg_owner }}"
+        group: "{{ pg_group }}"
+        recurse: yes
+      when: tablespaces
