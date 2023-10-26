@@ -1,0 +1,70 @@
+---
+- hosts: all
+  name: Capture some system data
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Clear any previously saved system statistics data
+      ansible.builtin.file:
+        path: "/tmp/sysstat"
+        path: "/tmp/profile"
+        state: absent
+      become: true
+
+    - name: Start system stats collection
+      ansible.builtin.shell:
+        cmd: ts sysstat -o /tmp/sysstat
+      become: true
+      async: 1
+      poll: 0
+
+    - name: Capture some performance counters
+      ansible.builtin.shell:
+        cmd: ts profile -o /tmp/profile sleep 10
+      become: true
+
+    - name: Capture 10 minutes of system statistics
+      ansible.builtin.shell:
+        cmd: sleep 600
+
+    - name: Stop system statistics collection for load
+      ansible.builtin.shell:
+        cmd: ts sysstat -o /tmp/sysstat -s
+      become: true
+
+    - name: Process pidstat data
+      ansible.builtin.shell:
+        cmd: ts process-pidstat -i /tmp/sysstat/pidstat.txt
+      become: true
+
+    - name: Plot sar data
+      ansible.builtin.shell:
+        cmd: ts plot-sar -i /tmp/sysstat/sar
+      become: true
+
+    - name: Plot pidstat data
+      ansible.builtin.shell:
+        cmd: ts plot-pidstat -i /tmp/sysstat/pidstat.csv -o /tmp/sysstat/pidstat
+      become: true
+
+    - name: Process perf data
+      ansible.builtin.shell:
+        cmd: ts profile -o /tmp/profile -p
+      become: true
+
+    - name: Fetch system stats and profile data
+      ansible.posix.synchronize:
+        mode: pull
+        src: "{{ item }}"
+        dest: "{{ results_directory }}/{{ inventory_hostname }}/"
+      loop:
+        - "/tmp/sysstat"
+        - "/tmp/profile"
+      become: true
+
+    - name: Save system details
+      ansible.builtin.include_role:
+        name: get-system-details

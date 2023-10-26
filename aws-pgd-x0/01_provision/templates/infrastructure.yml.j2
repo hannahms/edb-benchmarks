@@ -1,0 +1,66 @@
+---
+aws:
+  tags:
+    cluster_name: PGD-Always-ON-3Node
+    created_by: edb-benchmarks
+  images:
+    postgres:
+      name: {{ pg_image_name }}
+      owner: {{ pg_image_owner }}
+      ssh_user: {{ pg_ssh_user }}
+  regions:
+    {{ region }}:
+      cidr_block: 10.0.0.0/16
+      zones:
+        {{ zone0 }}: 10.0.0.0/24
+      service_ports:
+        - port: 22
+          protocol: tcp
+          description: "SSH"
+        - port: 5432
+          protocol: tcp
+          description: "PostgreSQL"
+        - port: 6432
+          protocol: tcp
+          description: "PGD Proxy"
+
+  machines:
+    kabutops:
+      image_name: postgres
+      tags:
+        type: primary
+        index: 1
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: {{ pg_storage_type }}
+        size_gb: {{ pg_storage_size }}
+        iops: {{ pg_storage_iops }}
+        encrypted: false
+    cursola:
+      image_name: postgres
+      tags:
+        type: primary
+        index: 2
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: {{ pg_storage_type }}
+        size_gb: {{ pg_storage_size }}
+        iops: {{ pg_storage_iops }}
+        encrypted: false
+    dustox:
+      image_name: postgres
+      tags:
+        type: primary
+        index: 3
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: {{ pg_storage_type }}
+        size_gb: {{ pg_storage_size }}
+        iops: {{ pg_storage_iops }}
+        encrypted: false

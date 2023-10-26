@@ -1,0 +1,19 @@
+---
+- hosts: all
+  name: Deploy additional software
+  become: true
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  pre_tasks:
+    - name: Initialize the user defined variables
+      set_fact:
+        disable_logging: false
+        enable_core_dump: true
+        enable_user_profiling: true
+
+  roles:
+    - manage_operating_system
+    - setup_touchstone_tools

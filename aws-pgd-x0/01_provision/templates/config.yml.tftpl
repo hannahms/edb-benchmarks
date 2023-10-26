@@ -1,0 +1,56 @@
+---
+architecture: PGD-Always-ON
+cluster_name: demo0
+cluster_tags: {}
+
+cluster_vars:
+  apt_repository_list: []
+  bdr_database: bdrdb
+  bdr_node_group: demo0
+  bdr_node_groups:
+  - name: demo0
+  - name: first_subgroup
+    options:
+      enable_proxy_routing: true
+      enable_raft: true
+      location: first
+    parent_group_name: demo0
+  bdr_version: '5'
+  default_pgd_proxy_options:
+    listen_port: 6432
+  edb_repositories:
+  - standard
+  - postgres_distributed
+  enable_pg_backup_api: false
+  failover_manager: pgd
+  postgres_coredump_filter: '0xff'
+  postgres_flavour: postgresql
+  postgres_version: '15'
+  preferred_python_version: python3
+  use_volatile_subscriptions: false
+
+locations:
+- Name: first
+
+instance_defaults:
+  platform: bare
+  vars:
+    ansible_user: admin
+
+instances:
+%{ for name, values in servers.machines ~}
+%{   if values.tags.type == "primary" ~}
+- Name: ${ name }
+  location: first
+  node: ${ values.tags.index }
+  public_ip: ${ values.public_ip }
+  private_ip: ${ values.private_ip }
+  role:
+  - bdr
+  - pgd-proxy
+  vars:
+    bdr_child_group: first_subgroup
+    bdr_node_options:
+      route_priority: 100
+%{   endif ~}
+%{ endfor ~}
