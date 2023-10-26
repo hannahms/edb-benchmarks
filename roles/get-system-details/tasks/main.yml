@@ -75,12 +75,14 @@
   until: coredumpctl.rc == 0 or coredumpctl.rc == 1
   failed_when: coredumpctl.rc != 0 and coredumpctl.rc != 1
   become: true
+  when: ansible_os_family == 'RedHat'
 
 - name: Save coredumpctl info output
   local_action:
     module: ansible.builtin.copy
     content: "{{ coredumpctl.stdout }}"
     dest: "{{ save_dir }}/coredumpctl.txt"
+  when: ansible_os_family == 'RedHat'
 
 - name: Save core dumps
   ansible.posix.synchronize:
@@ -88,6 +90,7 @@
     src: "/var/lib/systemd/coredump"
     dest: "{{ save_dir }}/coredump"
   become: true
+  when: ansible_os_family == 'RedHat'
 
 # Don't need escalated privileges to capture all data.
 - name: Capture mount output
