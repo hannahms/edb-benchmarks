@@ -25,11 +25,12 @@ aws:
           description: "PGD Proxy"
 
   machines:
-    kabutops:
+{% for i in range(nodes | int) %}
+    {{ pokemon[i] }}:
       image_name: postgres
       tags:
         type: primary
-        index: 1
+        index: {{ i }}
       region: {{ region }}
       az: {{ zone0 }}
       instance_type: {{ pg_instance_type }}
@@ -38,29 +39,15 @@ aws:
         size_gb: {{ pg_storage_size }}
         iops: {{ pg_storage_iops }}
         encrypted: false
-    cursola:
-      image_name: postgres
-      tags:
-        type: primary
-        index: 2
-      region: {{ region }}
-      az: {{ zone0 }}
-      instance_type: {{ pg_instance_type }}
-      volume:
-        type: {{ pg_storage_type }}
-        size_gb: {{ pg_storage_size }}
-        iops: {{ pg_storage_iops }}
-        encrypted: false
-    dustox:
-      image_name: postgres
-      tags:
-        type: primary
-        index: 3
-      region: {{ region }}
-      az: {{ zone0 }}
-      instance_type: {{ pg_instance_type }}
-      volume:
-        type: {{ pg_storage_type }}
-        size_gb: {{ pg_storage_size }}
-        iops: {{ pg_storage_iops }}
-        encrypted: false
+      additional_volumes:
+        - mount_point: /p
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: /x
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+{% endfor %}

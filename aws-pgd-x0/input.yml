@@ -13,4 +13,6 @@ pg_image_name: debian-10-amd64-20230917-1506
 pg_image_owner: 136693071363
 pg_ssh_user: admin
 
+nodes: 3
+
 cloud_service_provider: aws
