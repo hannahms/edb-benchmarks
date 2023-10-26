@@ -55,6 +55,16 @@
         cmd: ts profile -o /tmp/profile -p
       become: true
 
+    - name: Collapse perf stack
+      ansible.builtin.shell:
+        cmd: /usr/local/bin/stackcollapse-perf.pl /tmp/profile/perf.txt > /tmp/profile/perf.folded
+      become: true
+
+    - name: Create flame graph
+      ansible.builtin.shell:
+        cmd: /usr/local/bin/flamegraph.pl /tmp/profile/perf.folded > /tmp/profile/flamegraph.svg
+      become: true
+
     - name: Fetch system stats and profile data
       ansible.posix.synchronize:
         mode: pull
