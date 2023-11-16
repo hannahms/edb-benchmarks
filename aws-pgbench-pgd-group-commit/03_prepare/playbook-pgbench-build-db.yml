@@ -32,6 +32,7 @@
       loop:
         - pgd2
         - pgd3
+        - pgd4
 
     - name: Cleanup replication origin
       community.postgresql.postgresql_query:
@@ -77,12 +78,12 @@
       become: true
       when: inventory_hostname == 'pgd1'
 
-    - name: Stop Postgres on pgd2 and pgd3 [1]
+    - name: Stop Postgres on pgd2, pgd3 and pgd4 [1]
       ansible.builtin.systemd:
         name: "edb-as-{{ pg_version }}"
         state: stopped
       become: true
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
 
     - name: Wait for port {{ pg_port }}
       ansible.builtin.wait_for:
@@ -107,12 +108,12 @@
       when: inventory_hostname == 'pgd1'
 
     - name: Initialize the database {{ pgd_cluster_database }}
-      ansible.builtin.shell: |
-          /usr/edb/as{{ pg_version }}/bin/pgd_bench -h {{ pg_login_unix_socket }} \
-            -p {{ pg_port }} -i -s {{ pgbench_scale_factor }} -q \
-            {{ pgd_cluster_database }}
-      register: pgd_bench_output
-      changed_when: pgd_bench_output.rc == 0
+      ansible.builtin.command:
+        cmd: >-
+          /usr/edb/as{{ pg_version }}/bin/pgd_bench -h {{ pg_login_unix_socket }}
+          -p {{ pg_port }} -i -s {{ pgbench_scale_factor }} -q
+          {{ pgd_cluster_database }}
+      changed_when: false
       become: true
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
@@ -270,7 +271,7 @@
         # Required by bdr_init_physical
         chown enterprisedb.enterprisedb {{ pg_data | dirname }}
       become: true
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
 
     - name: Start stats collection for PGD initialization
       ansible.builtin.shell:
@@ -279,7 +280,7 @@
       async: 1
       poll: 0
 
-    - name: Building pgd2 and pgd3 with bdr_init_physical
+    - name: Building pgd2, pgd3 and pgd4 with bdr_init_physical
       ansible.builtin.shell: |
         PGAPPNAME={{ inventory_hostname }} /usr/edb/as{{ pg_version }}/bin/bdr_init_physical -D {{ pg_data }} \
                 -l {{ pg_log }}/bdr_init_physical.log \
@@ -287,7 +288,7 @@
                 --node-group-name {{ pgd_cluster_name }} \
                 -d 'host=pgd1 port={{ pg_port }} dbname={{ pgd_cluster_database }} user={{ pgd_replication_user }}' \
                 --local-dsn='host={{ inventory_hostname }} port={{ pg_port }} dbname={{ pgd_cluster_database }} user={{ pg_user }}'
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
       become: true
       become_user: "{{ pg_owner }}"
 
@@ -298,10 +299,10 @@
 
     # Need to use pg_ctl here instead of operating system service because
     # bdr_init_physical starts the database.
-    - name: Stop Postgres on pgd2 and pgd3 [2]
+    - name: Stop Postgres on pgd2, pgd3 and pgd4 [2]
       ansible.builtin.shell: |
         /usr/edb/as{{ pg_version }}/bin/pg_ctl -D {{ pg_data }} stop
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
       become: true
       become_user: "{{ pg_owner }}"
 
@@ -312,15 +313,15 @@
         rm -rf {{ pg_data }}/pg_wal/
         ln -s {{ pg_wal }} {{ pg_data }}/pg_wal
       become: true
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
 
-    - name: Starting Postgres on pgd2 and pgd3
+    - name: Starting Postgres on pgd2, pgd3 and pgd4
       ansible.builtin.systemd:
         name: "edb-as-{{ pg_version }}"
         state: started
         enabled: true
       become: true
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
 
     - name: Process pidstat data
       ansible.builtin.shell:

@@ -18,7 +18,7 @@
         file: "../infrastructure.yml"
         name: structure
 
-    - name: Clear any previously saved touchstone data - CAMO
+    - name: Clear any previously saved touchstone data - GC
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
@@ -27,25 +27,25 @@
         - "{{ ts_sysstat }}"
       become: true
 
-    - name: Start system stats collection - CAMO
+    - name: Start system stats collection - GC
       ansible.builtin.command:
         cmd: ts sysstat -o {{ ts_sysstat }}
       become: true
       async: 1
       poll: 0
 
-    - name: Start database statistics collection - CAMO
+    - name: Start database statistics collection - GC
       ansible.builtin.shell:
         cmd: >-
-          ts pgsql-stat --dbname={{ pgd_cluster_database }}
-            --host={{ pg_login_unix_socket }} --port={{ pg_port }}
+          ts pgsql-stat --dbname={{ pgd_cluster_database }} \
+            --host={{ pg_login_unix_socket }} --port={{ pg_port }} \
             -o {{ ts_dbstat }}
       become: true
       become_user: "{{ pg_owner }}"
       async: 1
       poll: 0
 
-    - name: Wait for Postgres to be ready - CAMO
+    - name: Wait for Postgres to be ready - GC
       ansible.builtin.command:
         cmd: >-
           /usr/edb/as{{ pg_version }}/bin/pg_isready -d {{ pgd_cluster_database }} -h {{ pg_login_unix_socket }}
@@ -58,101 +58,101 @@
       retries: 10
       delay: 10
 
-    - name: Run pgd_bench on pgd1 - CAMO
-      ansible.builtin.shell: |
-          /usr/edb/as{{ pg_version }}/bin/pgd_bench --mode=camo -h {{ pg_login_unix_socket }} -p {{ pg_port }} \
-            -p {{ pg_port }} -T {{ pgbench_duration }} -j 10 -c {{ pgbench_clients }} -n {{ pgd_cluster_database }} \
-            'host=pgd2 user={{ pg_owner }} port={{ pg_port }} dbname={{ pgd_cluster_database }}'
+    - name: Run pgd_bench on pgd1 - GC
+      ansible.builtin.shell:
+        cmd: >-
+          /usr/edb/as{{ pg_version }}/bin/pgd_bench -h {{ pg_login_unix_socket }} -p {{ pg_port }} \
+            -p {{ pg_port }} -T {{ pgbench_duration }} -j 10 -c {{ pgbench_clients }} -n {{ pgd_cluster_database }}
       become: true
       become_user: "{{ pg_owner }}"
-      register: camo_result
+      register: gc_result
       when: inventory_hostname == 'pgd1'
 
-    - name: Debug camo_result
+    - name: Debug gc_result
       ansible.builtin.debug:
-        var: camo_result
+        var: gc_result
       when: inventory_hostname == 'pgd1'
 
-    - name: Create /tmp/pgd_bench_camo_result.txt
+    - name: Create /tmp/pgd_bench_gc_result.txt
       ansible.builtin.copy:
         content: "{{ camo_result }}"
-        dest: "/tmp/pgd_bench_camo_result.txt"
+        dest: "/tmp/pgd_bench_gc_result.txt"
         mode: "0755"
       when: inventory_hostname == 'pgd1'
 
-    - name: Stop database statistics collection - CAMO
+    - name: Stop database statistics collection - GC
       ansible.builtin.shell:
         cmd: ts pgsql-stat -o {{ ts_dbstat }} -s
       become: true
       become_user: "{{ pg_owner }}"
 
-    - name: Stop system stats collection - CAMO
+    - name: Stop system stats collection - GC
       ansible.builtin.command:
         cmd: ts sysstat -o {{ ts_sysstat }} -s
       become: true
 
-    - name: Process pidstat data - CAMO
+    - name: Process pidstat data - GC
       ansible.builtin.shell:
         cmd: ts process-pidstat -i {{ ts_sysstat }}/pidstat.txt
       become: true
 
-    - name: Plot sar data - CAMO
+    - name: Plot sar data - GC
       ansible.builtin.shell:
         cmd: ts plot-sar -i {{ ts_sysstat }}/sar
       become: true
 
-    - name: Plot pidstat data - CAMO
+    - name: Plot pidstat data - GC
       ansible.builtin.shell:
         cmd: ts plot-pidstat -i {{ item }}/pidstat.csv -o {{ item }}/pidstat
       loop:
         - "{{ ts_sysstat }}"
       become: true
 
-    - name: Plot database data - CAMO
+    - name: Plot database data - GC
       ansible.builtin.shell:
         cmd: ts plot-pgsql -i {{ ts_dbstat }} -d {{ pgd_cluster_database }}
       become: true
       become_user: "{{ pg_owner }}"
 
-    - name: Set camo_save_dir
+    - name: Set gc_save_dir
       ansible.builtin.set_fact:
-        camo_save_dir: "{{ results_directory }}/camo/{{ inventory_hostname }}"
+        camo_save_dir: "{{ results_directory }}/gc/{{ inventory_hostname }}"
 
-    - name: Make sure camo results directory exists
+    - name: Make sure group commit results directory exists
       local_action:
         module: ansible.builtin.file
-        path: "{{ camo_save_dir }}"
+        path: "{{ gc_save_dir }}"
         state: directory
 
-    - name: Fetch system and database statistics - CAMO
+    - name: Fetch system and database statistics - GC
       ansible.posix.synchronize:
         mode: pull
         src: "{{ item }}"
-        dest: "{{ camo_save_dir }}/"
+        dest: "{{ gc_save_dir }}/"
       loop:
         - "{{ ts_sysstat }}"
         - "{{ ts_dbstat }}"
       become: true
 
-    - name: Fetch camo pgd_bench result output
+    - name: Fetch group commit pgd_bench result output
       ansible.builtin.fetch:
         src: "/tmp/pgd_bench_camo_result.txt"
-        dest: "{{ camo_save_dir }}/pgd_bench_camo_result.txt"
+        dest: "{{ camo_save_dir }}/pgd_bench_gc_result.txt"
         flat: true
       become: true
       when: inventory_hostname == 'pgd1'
 
-    - name: Fetch CAMO postgres logs
+    - name: Fetch Group Commit postgres logs
       ansible.builtin.fetch:
         src: "{{ pg_log }}/{{ pg_log_filename }}"
         dest: "{{ camo_save_dir }}/{{ pg_log_filename }}"
         flat: true
       become: true
 
-    - name: Fetch bdr_init_physical logs from pgd2 and pgd3 - CAMO
+    - name: Fetch bdr_init_physical logs from pgd2, pgd3 and pgd4 - GC
       ansible.builtin.fetch:
         src: "{{ pg_log }}/bdr_init_physical.log"
         dest: "{{ camo_save_dir }}/bdr_init_physical.log"
         flat: true
       become: true
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']

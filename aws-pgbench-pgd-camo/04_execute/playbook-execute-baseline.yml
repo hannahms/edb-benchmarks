@@ -37,8 +37,8 @@
     - name: Start database statistics collection - baseline
       ansible.builtin.shell:
         cmd: >-
-          ts pgsql-stat --dbname={{ pgd_cluster_database }} \
-            --host={{ pg_login_unix_socket }} --port={{ pg_port }} \
+          ts pgsql-stat --dbname={{ pgd_cluster_database }}
+            --host={{ pg_login_unix_socket }} --port={{ pg_port }}
             -o {{ ts_dbstat }}
       become: true
       become_user: "{{ pg_owner }}"
@@ -59,10 +59,9 @@
       delay: 10
 
     - name: Run pgd_bench on pgd1 - baseline
-      ansible.builtin.shell:
-        cmd: >-
+      ansible.builtin.shell: |
           /usr/edb/as{{ pg_version }}/bin/pgd_bench -h {{ pg_login_unix_socket }} -p {{ pg_port }} \
-            -T {{ pgbench_duration }} -j 10 -c {{ pgbench_clients }} {{ pgd_cluster_database }}
+            -T {{ pgbench_duration }} -j 10 -c {{ pgbench_clients }} -n {{ pgd_cluster_database }}
       become: true
       become_user: "{{ pg_owner }}"
       register: baseline_result

@@ -1,1 +1,12 @@
 ---
+- hosts: all
+  name: Save system details
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Save system details
+      ansible.builtin.include_role:
+        name: get-system-details

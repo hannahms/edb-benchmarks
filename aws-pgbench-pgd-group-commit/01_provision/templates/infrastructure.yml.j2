@@ -14,7 +14,8 @@ aws:
     {{ region }}:
       cidr_block: 10.0.0.0/16
       zones:
-        {{ zone0 }}: 10.0.0.0/24
+        {{ zone0 }}: 10.0.1.0/24
+        {{ zone1 }}: 10.0.2.0/24
       service_ports:
         - port: 22
           protocol: tcp
@@ -81,7 +82,31 @@ aws:
         type: pgd
         index: 2
       region: {{ region }}
-      az: {{ zone0 }}
+      az: {{ zone1 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: gp3
+        size_gb: 1000
+        iops: 3000
+        encrypted: false
+      additional_volumes:
+        - mount_point: /pgdata
+          size_gb: {{ pgdata_storage_size }}
+          type: {{ pgdata_storage_type }}
+          iops: {{ pgdata_storage_iops }}
+          encrypted: false
+        - mount_point: /pgwal
+          size_gb: {{ pgwal_storage_size }}
+          type: {{ pgwal_storage_type }}
+          iops: {{ pgwal_storage_iops }}
+          encrypted: false
+    pgd4:
+      image_name: postgres
+      tags:
+        type: pgd
+        index: 2
+      region: {{ region }}
+      az: {{ zone1 }}
       instance_type: {{ pg_instance_type }}
       volume:
         type: gp3

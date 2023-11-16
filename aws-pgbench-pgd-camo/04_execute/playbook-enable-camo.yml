@@ -8,6 +8,15 @@
     - edb_devops.edb_postgres
 
   tasks:
+    - name: Clear any previously saved system statistics data
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ ts_load }}"
+        - "{{ ts_pgd_init }}"
+      become: true
+
     - name: Remove PGD nodes
       community.postgresql.postgresql_query:
         query: >-
@@ -110,18 +119,16 @@
       when: inventory_hostname == 'pgd1'
 
     - name: Restore database
-      ansible.builtin.command:
-        cmd: >-
-          /usr/edb/as{{ pg_version }}/bin/pg_restore --if-exists --clean -j 4 {{ pg_data }}/backup
+      ansible.builtin.shell: |
+          /usr/edb/as{{ pg_version }}/bin/pg_restore --if-exists --clean -j 6 {{ pg_data }}/backup \
           -d {{ pgd_cluster_database }} -h {{ pg_login_unix_socket }} -p {{ pg_port }}
       become: true
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
 
     - name: Vacuum database
-      ansible.builtin.command:
-        cmd: >-
-          /usr/edb/as{{ pg_version }}/bin/vacuumdb -d {{ pgd_cluster_database }}
+      ansible.builtin.shell: |
+          /usr/edb/as{{ pg_version }}/bin/vacuumdb -d {{ pgd_cluster_database }} \
           -h {{ pg_login_unix_socket }} -p {{ pg_port }} -F -j 4 -z
       become: true
       become_user: "{{ pg_owner }}"

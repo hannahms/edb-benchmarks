@@ -1,7 +1,6 @@
 ---
 - hosts: primary
-  name: Destroy, create, load, and reconstruct the distributed database
-  become: true
+  name: Reinit DB and enable Group Commit
   gather_facts: true
   any_errors_fatal: true
 
@@ -32,6 +31,7 @@
       loop:
         - pgd2
         - pgd3
+        - pgd4
 
     - name: Cleanup replication origin
       community.postgresql.postgresql_query:
@@ -70,6 +70,26 @@
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
 
+    - name: Clear the previously saved postgresql.log
+      ansible.builtin.file:
+        path: "{{ pg_log }}/{{ pg_log_filename }}"
+        state: absent
+      become: true
+
+    - name: Clear the previously saved bdr_init_physical.log on pgd2, pgd3 and pgd4
+      ansible.builtin.file:
+        path: "{{ pg_log }}/bdr_init_physical.log"
+        state: absent
+      become: true
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
+
+    - name: Run pg_ctl logrotate
+      ansible.builtin.command:
+        cmd: >-
+          /usr/edb/as{{ pg_version }}/bin/pg_ctl -D {{ pg_data }} logrotate
+      become: true
+      become_user: "{{ pg_owner }}"
+
     - name: Restart Postgres on pgd1
       ansible.builtin.systemd:
         name: "edb-as-{{ pg_version }}"
@@ -77,12 +97,12 @@
       become: true
       when: inventory_hostname == 'pgd1'
 
-    - name: Stop Postgres on pgd2 and pgd3 [1]
+    - name: Stop Postgres on pgd2, pgd3 and pgd4 [1]
       ansible.builtin.systemd:
         name: "edb-as-{{ pg_version }}"
         state: stopped
       become: true
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
 
     - name: Wait for port {{ pg_port }}
       ansible.builtin.wait_for:
@@ -91,64 +111,28 @@
         state: started
       when: inventory_hostname == 'pgd1'
 
-    - name: Start stats collection for load
-      ansible.builtin.shell:
-        cmd: ts sysstat -o {{ ts_load }}
-      become: true
-      async: 1
-      poll: 0
-
     - name: Create database {{ pgd_cluster_database }}
       ansible.builtin.command:
-        cmd: >-  
+        cmd: >-
           /usr/edb/as{{ pg_version }}/bin/createdb -h {{ pg_login_unix_socket }} {{ pgd_cluster_database }}
       become: true
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
 
-    - name: Initialize the database {{ pgd_cluster_database }}
-      ansible.builtin.shell: |
-          /usr/edb/as{{ pg_version }}/bin/pgd_bench -h {{ pg_login_unix_socket }} \
-            -p {{ pg_port }} -i -s {{ pgbench_scale_factor }} -q \
-            {{ pgd_cluster_database }}
-      register: pgd_bench_output
-      changed_when: pgd_bench_output.rc == 0
-      become: true
-      become_user: "{{ pg_owner }}"
-      when: inventory_hostname == 'pgd1'
-
-    - name: Stop system statistics collection for load
-      ansible.builtin.shell:
-        cmd: ts sysstat -o {{ ts_load }} -s
-      become: true
-
-    - name: Issuing CHECKPOINT on pgd1
-      community.postgresql.postgresql_query:
-        autocommit: true
-        query: >-
-          CHECKPOINT
-        db: "{{ pgd_cluster_database }}"
-        login_user: "{{ pg_user }}"
-        port: "{{ pg_port }}"
-        login_unix_socket: "{{ pg_login_unix_socket }}"
-      become: true
-      become_user: "{{ pg_owner }}"
-      when: inventory_hostname == 'pgd1'
-
-    - name: Make sure {{ pg_data }}/backup exists
-      ansible.builtin.file:
-        path: "{{ pg_data }}/backup"
-        state: directory
-        owner: "{{ pg_owner }}"
-        group: "{{ pg_group }}"
-      become: true
-      when: inventory_hostname == 'pgd1'
-
-    - name: Take a backup
+    - name: Restore database
       ansible.builtin.command:
         cmd: >-
-          /usr/edb/as{{ pg_version }}/bin/pg_dump -Fd -j 4 -f {{ pg_data }}/backup
+          /usr/edb/as{{ pg_version }}/bin/pg_restore --if-exists --clean -j 4 {{ pg_data }}/backup
           -d {{ pgd_cluster_database }} -h {{ pg_login_unix_socket }} -p {{ pg_port }}
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Vacuum database
+      ansible.builtin.command:
+        cmd: >-
+          /usr/edb/as{{ pg_version }}/bin/vacuumdb -d {{ pgd_cluster_database }}
+          -h {{ pg_login_unix_socket }} -p {{ pg_port }} -F -j 4 -z
       become: true
       become_user: "{{ pg_owner }}"
       when: inventory_hostname == 'pgd1'
@@ -248,7 +232,7 @@
         - "{{ pgd_cluster_database_owner }}"
       when: inventory_hostname == 'pgd1'
 
-    - name: Store pgd_replication_user and pgd_cluster_database_owner password in pgpass
+    - name: Store pgd_replication_user and pgd_cluster_database_owner password in .pgpass
       ansible.builtin.include_role:
         name: manage_dbserver
         tasks_from: manage_pgpass
@@ -270,7 +254,7 @@
         # Required by bdr_init_physical
         chown enterprisedb.enterprisedb {{ pg_data | dirname }}
       become: true
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
 
     - name: Start stats collection for PGD initialization
       ansible.builtin.shell:
@@ -279,10 +263,10 @@
       async: 1
       poll: 0
 
-    - name: Building pgd2 and pgd3 with bdr_init_physical
+    - name: Building pgd2, pgd3 and pgd4 with bdr_init_physical
       ansible.builtin.shell: |
         PGAPPNAME={{ inventory_hostname }} /usr/edb/as{{ pg_version }}/bin/bdr_init_physical -D {{ pg_data }} \
-                -l {{ pg_log }}/bdr_init_physical.log \
+                -l {{ pg_log }}/bdr_init_physical_camo.log \
                 -n {{ inventory_hostname }} \
                 --node-group-name {{ pgd_cluster_name }} \
                 -d 'host=pgd1 port={{ pg_port }} dbname={{ pgd_cluster_database }} user={{ pgd_replication_user }}' \
@@ -298,10 +282,10 @@
 
     # Need to use pg_ctl here instead of operating system service because
     # bdr_init_physical starts the database.
-    - name: Stop Postgres on pgd2 and pgd3 [2]
+    - name: Stop Postgres on pgd2, pgd3 and pgd4 [2]
       ansible.builtin.shell: |
         /usr/edb/as{{ pg_version }}/bin/pg_ctl -D {{ pg_data }} stop
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
       become: true
       become_user: "{{ pg_owner }}"
 
@@ -312,46 +296,186 @@
         rm -rf {{ pg_data }}/pg_wal/
         ln -s {{ pg_wal }} {{ pg_data }}/pg_wal
       become: true
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
 
-    - name: Starting Postgres on pgd2 and pgd3
+    - name: Starting Postgres on pgd2, pgd3 and
       ansible.builtin.systemd:
         name: "edb-as-{{ pg_version }}"
         state: started
         enabled: true
       become: true
-      when: inventory_hostname in ['pgd2', 'pgd3']
+      when: inventory_hostname in ['pgd2', 'pgd3', 'pgd4']
 
-    - name: Process pidstat data
-      ansible.builtin.shell:
-        cmd: ts process-pidstat -i {{ item }}/pidstat.txt
-      loop:
-        - "{{ ts_load }}"
-        - "{{ ts_pgd_init }}"
+    - name: Set bdr.default_streaming_mode to 'off'
+      community.postgresql.postgresql_query:
+        query: >-
+          ALTER SYSTEM SET bdr.default_streaming_mode TO 'off'
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        db: "{{ pgd_cluster_database }}"
+        autocommit: true
       become: true
+      become_user: "{{ pg_owner }}"
 
-    - name: Plot sar data
-      ansible.builtin.shell:
-        cmd: ts plot-sar -i {{ item }}/sar
-      loop:
-        - "{{ ts_load }}"
-        - "{{ ts_pgd_init }}"
+    - name: Set max_prepared_transactions to {{ max_prepared_transactions }}
+      community.postgresql.postgresql_query:
+        query: >-
+          ALTER SYSTEM SET max_prepared_transactions TO {{ max_prepared_transactions }}
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        db: "{{ pgd_cluster_database }}"
+        autocommit: true
       become: true
+      become_user: "{{ pg_owner }}"
 
-    - name: Plot pidstat data
-      ansible.builtin.shell:
-        cmd: ts plot-pidstat -i {{ item }}/pidstat.csv -o {{ item }}/pidstat
-      loop:
-        - "{{ ts_load }}"
-        - "{{ ts_pgd_init }}"
+    - name: Reload Postgres configuration
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT pg_reload_conf()
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        db: "{{ pgd_cluster_database }}"
+        autocommit: true
       become: true
+      become_user: "{{ pg_owner }}"
 
-    - name: Fetch system statistics
-      ansible.posix.synchronize:
-        mode: pull
-        src: "{{ item }}"
-        dest: "{{ results_directory }}/{{ inventory_hostname }}/"
-      loop:
-        - "{{ ts_load }}"
-        - "{{ ts_pgd_init }}"
+    # create group commit scope
+    - name: Create zone0 Group Commit subgroup and have pgd1 join
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT bdr.create_node_group(node_group_name := '{{ group_commit_subgroup_0 }}',
+                                       parent_group_name := '{{ pgd_cluster_name }}',
+                                       join_node_group := true);
+        login_user: "{{ pg_user }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        port: "{{ pg_port }}"
+        db: "{{ pgd_cluster_database }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd1'
+
+    - name: Have pgd2 join Group Commit zone0 subgroup
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT bdr.switch_node_group(node_group_name := '{{ group_commit_subgroup_0 }}',
+                                       wait_for_completion := true);
+        login_user: "{{ pg_user }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        port: "{{ pg_port }}"
+        db: "{{ pgd_cluster_database }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd2'
+
+    - name: Create zone1 Group Commit subgroup and have pgd3 join
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT bdr.create_node_group(node_group_name := '{{ group_commit_subgroup_1 }}',
+                                       parent_group_name := '{{ pgd_cluster_name }}',
+                                       join_node_group := true);
+        login_user: "{{ pg_user }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        port: "{{ pg_port }}"
+        db: "{{ pgd_cluster_database }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd3'
+
+    - name: Have pgd4 join Group Commit zone1 subgroup
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT bdr.switch_node_group(node_group_name := '{{ group_commit_subgroup_1 }}',
+                                       wait_for_completion := true);
+        login_user: "{{ pg_user }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        port: "{{ pg_port }}"
+        db: "{{ pgd_cluster_database }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      when: inventory_hostname == 'pgd4'
+
+    - name: Add zone0 Group Commit commit scope
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT bdr.add_commit_scope(commit_scope_name := 'group_commit_scope',
+                                      origin_node_group := '{{ group_commit_subgroup_0 }}',
+                                      rule := '{{ gc_cs_rule_0 }}',
+                                      wait_for_ready := true);
+        login_user: "{{ pg_user }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        port: "{{ pg_port }}"
+        db: "{{ pgd_cluster_database }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      throttle: 1
+      when: inventory_hostname in ['pgd1', 'pgd2']
+
+    - name: Add zone1 Group Commit commit scope
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT bdr.add_commit_scope(commit_scope_name := 'group_commit_scope',
+                                      origin_node_group := '{{ group_commit_subgroup_1 }}',
+                                      rule := '{{ gc_cs_rule_1 }}',
+                                      wait_for_ready := true);
+        login_user: "{{ pg_user }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        port: "{{ pg_port }}"
+        db: "{{ pgd_cluster_database }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      throttle: 1
+      when: inventory_hostname in ['pgd3', 'pgd4']
+
+    - name: Set default commit scope
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT bdr.alter_node_group_option(node_group_name := '{{ group_commit_subgroup_0 }}',
+                                             config_key := 'default_commit_scope',
+                                             config_value := 'group_commit_scope');
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        autocommit: true
+        db: "{{ pgd_cluster_database }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      throttle: 1
+      when: inventory_hostname in ['pgd1', 'pgd2']
+
+    - name: Set default commit scope
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT bdr.alter_node_group_option(node_group_name := '{{ group_commit_subgroup_1 }}',
+                                             config_key := 'default_commit_scope',
+                                             config_value := 'group_commit_scope');
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        autocommit: true
+        db: "{{ pgd_cluster_database }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      throttle: 1
+      when: inventory_hostname in ['pgd3', 'pgd4']
+
+    - name: Set local commit scope
+      community.postgresql.postgresql_query:
+        query: >-
+          SET LOCAL bdr.commit_scope = 'group_commit_scope';
+        login_user: "{{ pg_user }}"
+        port: "{{ pg_port }}"
+        login_unix_socket: "{{ pg_login_unix_socket }}"
+        autocommit: true
+        db: "{{ pgd_cluster_database }}"
+      become: true
+      become_user: "{{ pg_owner }}"
+      throttle: 1
+
+    - name: Restart the pg service
+      ansible.builtin.systemd:
+        name: "edb-as-{{ pg_version }}"
+        state: restarted
       become: true

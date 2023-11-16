@@ -32,12 +32,12 @@ max_prepared_transactions: 200
 camo_subgroup: "camo_pair_subgroup"
 camo_cs_rule: "ALL ( camo_pair_subgroup ) ON visible CAMO DEGRADE ON (timeout=500s) TO ASYNC"
 
-# pgbench vars - prod environment
+# pgbench vars - prod env
 pgbench_scale_factor: 20000
 pgbench_duration: 1200
 pgbench_clients: 50
 
-# test environment values
+# pgbench vars - dev env
 #pgbench_scale_factor: 500
 #pgbench_duration: 600
 #pgbench_clients: 50
@@ -45,5 +45,5 @@ pgbench_clients: 50
 # Touchstone Tools save locations
 ts_load: "/tmp/sysstat-load"
 ts_pgd_init: "/tmp/sysstat-pgd-init"
-ts_dbstat: "/tmp/sysstat"
-ts_sysstat: "/tmp/dbstat"
+ts_dbstat: "/tmp/dbstat"
+ts_sysstat: "/tmp/sysstat"
