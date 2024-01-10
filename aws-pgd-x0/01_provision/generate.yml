@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  name: Provision infrastructure
+  gather_facts: false
+
+  tasks:
+    - name: Role - benchmark-steps | Task - 01_provision.yml
+      ansible.builtin.include_role:
+        name: benchmark-steps
+        tasks_from: 01_provision.yml

@@ -1,0 +1,37 @@
+---
+- hosts: hammerdb_driver
+  name: Run TPROC-C
+  become: true
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  tasks:
+    - name: Start TPROC-C
+      ansible.builtin.shell:
+        cmd: ./hammerdbcli tcl auto /home/hammerdb/run_seq.tcl > /tmp/hammerdb.log 2>&1
+      args:
+        chdir: "/home/hammerdb/HammerDB-{{ hammerdb_version }}"
+      environment:
+        ORACLE_HOME: "/usr/lib/oracle/21/client64"
+      become: true
+      become_user: "hammerdb"
+      changed_when: false
+
+    - name: Clean up output
+      ansible.builtin.shell:
+        cmd: dos2unix /tmp/hammerdb.log
+      become_user: "hammerdb"
+
+    - name: Fetch HammerDB results file
+      ansible.builtin.fetch:
+        src: "/tmp/hammerdb.log"
+        dest: "{{ results_directory }}/hammerdb.log"
+        flat: true
+
+    - name: Fetch xtprof results file
+      ansible.builtin.fetch:
+        src: "/tmp/hdbxtprofile.log"
+        dest: "{{ results_directory }}/hdbxtprofile.log"
+        flat: true

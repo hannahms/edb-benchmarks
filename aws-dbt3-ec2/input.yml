@@ -1,0 +1,22 @@
+# lowercase ansible variables will be mapped to UPPERCASE bash environment
+# variables these will be used as defaults in the case of empty inputs
+# credentials with <secret> will not be saved with a default and instead will
+# only look at the environment
+bucket_name: ""
+ansible_verbosity: 0
+region: us-east-1
+zone0: us-east-1b
+pg_instance_type: r5b.2xlarge
+pg_storage_type: gp3
+pg_storage_size: 1000
+pg_storage_iops: 3000
+pg_image_name: Rocky-8-ec2-8.6-20220515.0.x86_64
+pg_image_owner: 679593333241
+pg_ssh_user: rocky
+
+dbt3_scale_factor: 1
+dbt3tsdir: /t
+
+tpcfile: ""
+
+cloud_service_provider: aws

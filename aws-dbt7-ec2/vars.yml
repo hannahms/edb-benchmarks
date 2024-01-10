@@ -1,0 +1,14 @@
+---
+pg_database: "postgres"
+pg_port: 5432
+pg_type: "PG"
+pg_group: "postgres"
+pg_owner: "postgres"
+pg_password: "1234567890zyxu"
+pg_superuser: "postgres"
+pg_user_home: "/var/lib/pgsql"
+pg_version: 14
+
+pg_data: "/opt/pgdata"
+pg_wal: "/opt/pgwal"
+tablespaces: false

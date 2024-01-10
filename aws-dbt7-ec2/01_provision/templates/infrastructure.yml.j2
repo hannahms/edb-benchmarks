@@ -1,0 +1,646 @@
+---
+aws:
+  tags:
+    cluster_name: DBT7-EC2
+    created_by: edb-benchmarks
+  images:
+    driver:
+      name: Rocky-8-ec2-8.6-20220515.0.x86_64
+      owner: 679593333241
+      ssh_user: rocky
+    postgres:
+      name: {{ pg_image_name }}
+      owner: {{ pg_image_owner }}
+      ssh_user: {{ pg_ssh_user }}
+  regions:
+    {{ region }}:
+      cidr_block: 10.0.0.0/16
+      zones:
+        {{ zone0 }}: 10.0.0.0/24
+      service_ports:
+        - port: 22
+          protocol: tcp
+          description: "SSH"
+
+  machines:
+    postgres1:
+      spot: true
+      image_name: postgres
+      tags:
+        type: primary
+      region: {{ region }}
+      az: {{ zone0 }}
+      instance_type: {{ pg_instance_type }}
+      volume:
+        type: {{ pg_storage_type }}
+        size_gb: {{ pg_storage_size }}
+        iops: {{ pg_storage_iops }}
+        encrypted: false
+      additional_volumes:
+        - mount_point: {{ pg_data}}
+          type: gp3
+          size_gb: 1000
+          iops: 16000
+          encrypted: false
+        - mount_point: {{ pg_wal }}
+          type: gp3
+          size_gb: 1000
+          iops: 16000
+          encrypted: false
+{% if tablespaces %}
+        - mount_point: {{ dbt7tsdir }}/store_sales
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/store_returns
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/catalog_sales
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/catalog_returns
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/web_sales
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/web_returns
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/inventory
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/store
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/call_center
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/catalog_page
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/web_site
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/web_page
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/warehouse
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/customer
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/customer_address
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/customer_demographics
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/date_dim
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/household_demographics
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/income_band
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/promotion
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/reason
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/ship_mode
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/time_dim
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/s_purchase_lineitem
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/s_purchase
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/s_catalog_order
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/s_web_order
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/s_catalog_order_lineitem
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/s_web_order_lineitem
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/s_store_returns
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/s_catalog_returns
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/s_web_returns
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/s_inventory
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_store_sales
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_store_returns
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_catalog_sales
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_catalog_returns
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_web_sales
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_web_returns
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_inventory
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_store
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_call_center
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_catalog_page
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_web_site
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_web_page
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_warehouse
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_customer
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_customer_address
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_customer_demographics
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_date_dim
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_household_demographics
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_item
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_income_band
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_promotion
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_reason
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_ship_mode
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_time_dim
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_s_purchase
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_s_catalog_order
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_s_web_order
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_s_purchase_lineitem
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_s_store_returns
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_s_web_returns
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/pk_s_inventory
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_ss_sold_date_sk
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_sr_returned_date_sk
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cs_sold_date_sk
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cr_returned_date_sk
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_ws_sold_date_sk
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_wr_returned_date_sk
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_s_store_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cc_call_center_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cc_rec_end_date
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cp_catalog_number
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cp_catalog_page_number
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cp_catalog_page_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_wp_web_page_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_w_warehouse_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_c_customer_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_d_date
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_i_item_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_i_rec_end_date
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_p_promo_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_r_reason_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_sm_ship_mode_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_t_time
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_purc_customer_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_purc_purchase_date
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_purc_purchase_time
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_purc_store_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cord_bill_customer_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cord_ship_customer_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cord_call_center_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cord_order_time
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_cord_ship_mode_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_word_ship_customer_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_word_ship_mode_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_clin_ship_date
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_clin_item_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_clin_promotion_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_clin_order_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_clin_catalog_number
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_clin_warehouse_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_clin_catalog_page_number
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_plin_item_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_plin_promotion_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_wlin_warehouse_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_wlin_promotion_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_wlin_ship_date
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_wlin_order_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_wlin_web_page_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_sret_store_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_sret_return_date
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_sret_customer_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_sret_reason_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_wret_web_page_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_wret_return_customer_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_invn_item_id
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+        - mount_point: {{ dbt7tsdir }}/i_invn_date
+          type: gp3
+          size_gb: 1000
+          iops: 3000
+          encrypted: false
+{% endif %}

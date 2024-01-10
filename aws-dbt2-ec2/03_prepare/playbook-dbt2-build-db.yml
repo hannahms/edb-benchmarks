@@ -8,15 +8,6 @@
     - edb_devops.edb_postgres
 
   tasks:
-    - name: Set tablespace permissions on the filesystem
-      ansible.builtin.file:
-        path: "{{ dbt2tsdir }}"
-        state: directory
-        owner: "{{ pg_owner }}"
-        group: "{{ pg_group }}"
-        recurse: yes
-      when: tablespaces
-
     - name: Build DBT-2 database
       ansible.builtin.command:
         cmd: >-

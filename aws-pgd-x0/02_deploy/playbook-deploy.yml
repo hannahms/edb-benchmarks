@@ -1,0 +1,34 @@
+---
+- hosts: all
+  name: Deploy additional software
+  become: true
+  gather_facts: true
+
+  collections:
+    - edb_devops.edb_postgres
+
+  pre_tasks:
+    - name: Initialize the user defined variables
+      set_fact:
+        disable_logging: false
+        enable_core_dump: true
+        enable_user_profiling: true
+
+  roles:
+    - manage_operating_system
+    - setup_touchstone_tools
+
+  tasks:
+    - name: Install stackcollapse-perf
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/brendangregg/FlameGraph/master/stackcollapse-perf.pl
+        dest: /usr/local/bin/stackcollapse-perf.pl
+        mode: '0755'
+      become: true
+
+    - name: Install flamegraph
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl
+        dest: /usr/local/bin/flamegraph.pl
+        mode: '0755'
+      become: true

@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: primary
   name: Install repository
   become: true
   gather_facts: false
@@ -24,64 +24,22 @@
         name: "{{ pg_owner }}"
       when: inventory_hostname not in groups['primary']
 
-  roles:
-    - setup_repo
-
-- hosts: dbt2_driver
-  name: Install DBT2 driver
-  become: true
-  gather_facts: true
-
-  collections:
-    - edb_devops.edb_postgres
-
-  pre_tasks:
-    - name: Create {{ pg_owner }} OS user
-      ansible.builtin.user:
-        name: "{{ pg_owner }}"
-
-  roles:
-    - role: setup_dbt2_driver
-
-  tasks:
-    - name: Update .pgpass
-      ansible.builtin.lineinfile:
-        path: "{{ pg_user_home }}/.pgpass"
-        regexp: ^\*:\*:\*:{{ pg_owner }}.*
-        line: "*:*:*:{{ pg_owner }}:{{ pg_password }}"
-        owner: "{{ pg_owner }}"
-        group: "{{ pg_group }}"
-        mode: "0600"
-      become: true
-
-- hosts: primary
-  name: Install PostgreSQL
-  become: true
-  gather_facts: true
-
-  collections:
-    - edb_devops.edb_postgres
-
-  pre_tasks:
     - name: Initialize the user defined variables
       set_fact:
         disable_logging: false
 
-        # Tempory dirty hack.
-        pg_shared_libraries_list: []
-
   roles:
+    - setup_repo
     - manage_operating_system
     - install_dbserver
     - init_dbserver
     - manage_dbserver
-    - setup_dbt2
-    - setup_touchstone_tools
+    - setup_dbt3
 
   tasks:
     - name: Set tablespace permissions on the filesystem
       ansible.builtin.file:
-        path: "{{ dbt2tsdir }}"
+        path: "{{ dbt3tsdir }}"
         state: directory
         owner: "{{ pg_owner }}"
         group: "{{ pg_group }}"
